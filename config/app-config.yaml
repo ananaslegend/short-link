@@ -1,0 +1,4 @@
+env: "local"
+db_conn: "mysql://user:password@localhost:3306/database"
+http_server:
+  port: ":8080"
