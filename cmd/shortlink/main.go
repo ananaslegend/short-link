@@ -36,11 +36,21 @@ func main() {
 	// start server
 	s := http.Server{
 		Addr:    cfg.HttpServer.Port,
-		Handler: m,
+		Handler: recoverHandler(log, m),
 	}
 
 	if err = s.ListenAndServe(); err != nil {
-		log.Error("cant run HTTP server", logs.Err(err))
+		log.Error("HTTP server", logs.Err(err))
 		os.Exit(1)
 	}
+}
+
+func recoverHandler(log *slog.Logger, m *http.ServeMux) http.Handler {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Error("app in panic", r)
+		}
+	}()
+
+	return m
 }
