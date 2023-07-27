@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"github.com/ananaslegend/short-link/api/handlers"
+	"github.com/ananaslegend/short-link/api/handlers/save"
 	"github.com/ananaslegend/short-link/config"
 	"github.com/ananaslegend/short-link/logs"
 	"github.com/ananaslegend/short-link/storage"
@@ -31,7 +31,13 @@ func main() {
 
 	// setup router
 	m := http.NewServeMux()
-	m.HandleFunc("/link", handlers.Link(context.TODO(), log, db))
+
+	m.HandleFunc("/link", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodPost:
+			save.Handle(context.TODO(), log, db)
+		}
+	})
 
 	// start server
 	s := http.Server{
