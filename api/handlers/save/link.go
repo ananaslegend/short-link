@@ -14,7 +14,7 @@ import (
 )
 
 type LinkSaver interface {
-	AddLink(link, alias string) error
+	SaveLink(link, alias string) error
 }
 
 type Request struct {
