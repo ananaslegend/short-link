@@ -35,7 +35,7 @@ func main() {
 	m.HandleFunc("/link", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodPost:
-			save.Handle(context.TODO(), log, db)(w, r)
+			save.Handle(context.TODO(), w, r, log, db)
 		}
 	})
 
