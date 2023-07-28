@@ -32,8 +32,8 @@ func (s Sql) PrepareStorage() error {
 	return nil
 }
 
-func (s Sql) AddLink(link, alias string) error {
-	const op = "storage.sql.AddLink"
+func (s Sql) SaveLink(link, alias string) error {
+	const op = "storage.sql.SaveLink"
 
 	stmt, err := s.db.Prepare(`
 	insert into link (alias, link)
@@ -43,7 +43,7 @@ func (s Sql) AddLink(link, alias string) error {
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
-	if _, err = stmt.Exec(link, alias); err != nil {
+	if _, err = stmt.Exec(alias, link); err != nil {
 		if sqliteErr, ok := err.(sqlite3.Error); ok && sqliteErr.ExtendedCode == sqlite3.ErrConstraintUnique { // TODO: sqlite3.Error прив'язались
 			return fmt.Errorf("%s: \"%s\" %w", op, alias, errs.ErrAliasExists)
 		}
@@ -52,4 +52,24 @@ func (s Sql) AddLink(link, alias string) error {
 	}
 
 	return nil
+}
+
+func (s Sql) GetLink(alias string) (string, error) {
+	const op = "storage.sql.GetLink"
+
+	stmt, err := s.db.Prepare(`
+	select link 
+	from link
+	where alias == ?
+`)
+	if err != nil {
+		return "", fmt.Errorf("%s: %w", op, err)
+	}
+
+	var link string
+	if err = stmt.QueryRow(alias).Scan(&link); err != nil {
+		return "", fmt.Errorf("%s: %w", op, err)
+	}
+
+	return link, nil
 }

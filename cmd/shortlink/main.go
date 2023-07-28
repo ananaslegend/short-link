@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"github.com/ananaslegend/short-link/api/handlers/redirect"
 	"github.com/ananaslegend/short-link/api/handlers/save"
 	"github.com/ananaslegend/short-link/config"
 	"github.com/ananaslegend/short-link/logs"
@@ -31,6 +32,10 @@ func main() {
 
 	// setup router
 	m := http.NewServeMux()
+
+	m.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		redirect.Handle(context.TODO(), w, r, log, db)
+	})
 
 	m.HandleFunc("/link", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
