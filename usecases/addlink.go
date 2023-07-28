@@ -9,14 +9,15 @@ import (
 	"github.com/ananaslegend/short-link/logs"
 	"github.com/google/uuid"
 	"golang.org/x/exp/slog"
+	"strings"
 )
 
 type LinkSaver interface {
-	AddLink(link, alias string) error
+	SaveLink(link, alias string) error
 }
 
 func AddLink(c context.Context, log *slog.Logger, ls LinkSaver, link, alias string) (string, error) {
-	const op = "usecases.link.AddLink"
+	const op = "usecases.link.SaveLink"
 
 	var autoAlias bool
 	if len(alias) == 0 {
@@ -24,7 +25,11 @@ func AddLink(c context.Context, log *slog.Logger, ls LinkSaver, link, alias stri
 		autoAlias = true
 	}
 
-	if err := ls.AddLink(link, alias); err != nil {
+	if !strings.Contains(link, "http") {
+		link = "http://" + link
+	}
+
+	if err := ls.SaveLink(link, alias); err != nil {
 		if errors.Is(err, errs.ErrAliasExists) {
 			if autoAlias {
 				log.Error(fmt.Sprintf("auto generated alias already exists"), logs.Err(err))
