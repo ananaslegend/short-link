@@ -5,8 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/ananaslegend/short-link/core"
+	"github.com/ananaslegend/short-link/errs"
 	"github.com/ananaslegend/short-link/logs"
-	"github.com/ananaslegend/short-link/storage"
 	"github.com/google/uuid"
 	"golang.org/x/exp/slog"
 )
@@ -25,10 +25,10 @@ func AddLink(c context.Context, log *slog.Logger, ls LinkSaver, link, alias stri
 	}
 
 	if err := ls.AddLink(link, alias); err != nil {
-		if errors.Is(err, storage.ErrAliasExists) {
-			if !autoAlias {
+		if errors.Is(err, errs.ErrAliasExists) {
+			if autoAlias {
 				log.Error(fmt.Sprintf("auto generated alias already exists"), logs.Err(err))
-				return "", ErrAutoAliasAlreadyExists
+				return "", errs.ErrAutoAliasAlreadyExists
 			}
 
 			err = fmt.Errorf("%s: %w", op, err)
@@ -38,5 +38,3 @@ func AddLink(c context.Context, log *slog.Logger, ls LinkSaver, link, alias stri
 
 	return alias, nil
 }
-
-var ErrAutoAliasAlreadyExists = errors.New("auto alias already exists")

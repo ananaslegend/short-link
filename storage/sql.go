@@ -3,6 +3,7 @@ package storage
 import (
 	"database/sql"
 	"fmt"
+	"github.com/ananaslegend/short-link/errs"
 	"github.com/mattn/go-sqlite3"
 )
 
@@ -44,7 +45,7 @@ func (s Sql) AddLink(link, alias string) error {
 
 	if _, err = stmt.Exec(link, alias); err != nil {
 		if sqliteErr, ok := err.(sqlite3.Error); ok && sqliteErr.ExtendedCode == sqlite3.ErrConstraintUnique { // TODO: sqlite3.Error прив'язались
-			return fmt.Errorf("%s: \"%s\" %w", op, alias, ErrAliasExists)
+			return fmt.Errorf("%s: \"%s\" %w", op, alias, errs.ErrAliasExists)
 		}
 
 		return fmt.Errorf("%s: %w", op, err)
