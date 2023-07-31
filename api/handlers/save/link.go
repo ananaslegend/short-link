@@ -7,14 +7,13 @@ import (
 	"fmt"
 	"github.com/ananaslegend/short-link/errs"
 	"github.com/ananaslegend/short-link/logs"
-	"github.com/ananaslegend/short-link/usecases"
 	"golang.org/x/exp/slog"
 	"io"
 	"net/http"
 )
 
-type LinkSaver interface {
-	SaveLink(link, alias string) error
+type LinkAdder interface {
+	AddLink(c context.Context, link, alias string) (string, error)
 }
 
 type Request struct {
@@ -27,7 +26,7 @@ type Response struct {
 	Error string `json:"error,omitempty"`
 }
 
-func Handle(c context.Context, w http.ResponseWriter, r *http.Request, log *slog.Logger, ls LinkSaver) {
+func Handle(c context.Context, w http.ResponseWriter, r *http.Request, log *slog.Logger, service LinkAdder) {
 	const op = "api.handlers.save.link.Handle"
 	log.With(slog.String("op", op))
 	var (
@@ -49,7 +48,7 @@ func Handle(c context.Context, w http.ResponseWriter, r *http.Request, log *slog
 		return
 	}
 
-	addedAlias, err := usecases.AddLink(c, log, ls, req.Link, req.Alias)
+	addedAlias, err := service.AddLink(c, req.Link, req.Alias)
 	if err != nil {
 		if errors.Is(err, errs.ErrAutoAliasAlreadyExists) {
 			w.WriteHeader(http.StatusInternalServerError)

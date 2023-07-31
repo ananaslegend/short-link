@@ -1,4 +1,4 @@
-package core
+package shortner
 
 import (
 	"github.com/ananaslegend/short-link/utils"

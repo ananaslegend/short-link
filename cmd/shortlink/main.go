@@ -6,6 +6,7 @@ import (
 	"github.com/ananaslegend/short-link/api/handlers/save"
 	"github.com/ananaslegend/short-link/config"
 	"github.com/ananaslegend/short-link/logs"
+	"github.com/ananaslegend/short-link/services/link"
 	"github.com/ananaslegend/short-link/storage"
 	"golang.org/x/exp/slog"
 	"net/http"
@@ -30,17 +31,18 @@ func main() {
 		os.Exit(1)
 	}
 
-	// setup router
+	linkService := link.New(log, db)
+
 	m := http.NewServeMux()
 
 	m.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		redirect.Handle(context.TODO(), w, r, log, db)
+		redirect.Handle(context.TODO(), w, r, log, linkService)
 	})
 
 	m.HandleFunc("/link", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodPost:
-			save.Handle(context.TODO(), w, r, log, db)
+			save.Handle(context.TODO(), w, r, log, linkService)
 		}
 	})
 

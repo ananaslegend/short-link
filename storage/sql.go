@@ -32,8 +32,8 @@ func (s Sql) PrepareStorage() error {
 	return nil
 }
 
-func (s Sql) SaveLink(link, alias string) error {
-	const op = "storage.sql.SaveLink"
+func (s Sql) InsertLink(link, alias string) error {
+	const op = "storage.sql.InsertLink"
 
 	stmt, err := s.db.Prepare(`
 	insert into link (alias, link)
@@ -54,8 +54,8 @@ func (s Sql) SaveLink(link, alias string) error {
 	return nil
 }
 
-func (s Sql) GetLink(alias string) (string, error) {
-	const op = "storage.sql.GetLink"
+func (s Sql) SelectLink(alias string) (string, error) {
+	const op = "storage.sql.SelectLink"
 
 	stmt, err := s.db.Prepare(`
 	select link 

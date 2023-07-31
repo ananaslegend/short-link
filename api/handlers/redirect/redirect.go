@@ -11,7 +11,7 @@ import (
 )
 
 type LinkGetter interface {
-	GetLink(alias string) (string, error)
+	GetLink(c context.Context, alias string) (string, error)
 }
 
 func Handle(c context.Context, w http.ResponseWriter, r *http.Request, log *slog.Logger, lg LinkGetter) {
@@ -26,7 +26,7 @@ func Handle(c context.Context, w http.ResponseWriter, r *http.Request, log *slog
 	}
 	alias := segments[1]
 
-	link, err := lg.GetLink(alias)
+	link, err := lg.GetLink(c, alias)
 	if err != nil {
 		if errors.Is(err, errs.ErrAliasNotFound) {
 			w.WriteHeader(http.StatusNotFound)
