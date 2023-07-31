@@ -1,11 +1,11 @@
 package main
 
 import (
-	"context"
 	"github.com/ananaslegend/short-link/api/handlers/redirect"
 	"github.com/ananaslegend/short-link/api/handlers/save"
 	"github.com/ananaslegend/short-link/config"
 	"github.com/ananaslegend/short-link/logs"
+	"github.com/ananaslegend/short-link/mw"
 	"github.com/ananaslegend/short-link/services/link"
 	"github.com/ananaslegend/short-link/storage"
 	"golang.org/x/exp/slog"
@@ -35,14 +35,15 @@ func main() {
 
 	m := http.NewServeMux()
 
-	m.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		redirect.Handle(context.TODO(), w, r, log, linkService)
-	})
+	m.HandleFunc("/", mw.WithRequestId(
+		func(w http.ResponseWriter, r *http.Request) {
+			redirect.Handle(w, r, log, linkService)
+		}))
 
 	m.HandleFunc("/link", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodPost:
-			save.Handle(context.TODO(), w, r, log, linkService)
+			save.Handle(w, r, log, linkService)
 		}
 	})
 

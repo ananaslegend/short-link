@@ -14,7 +14,7 @@ type LinkGetter interface {
 	GetLink(c context.Context, alias string) (string, error)
 }
 
-func Handle(c context.Context, w http.ResponseWriter, r *http.Request, log *slog.Logger, lg LinkGetter) {
+func Handle(w http.ResponseWriter, r *http.Request, log *slog.Logger, lg LinkGetter) {
 	const op = "api.handlers.redirect.Handle"
 	log.With(slog.String("op", op))
 
@@ -26,7 +26,7 @@ func Handle(c context.Context, w http.ResponseWriter, r *http.Request, log *slog
 	}
 	alias := segments[1]
 
-	link, err := lg.GetLink(c, alias)
+	link, err := lg.GetLink(r.Context(), alias)
 	if err != nil {
 		if errors.Is(err, errs.ErrAliasNotFound) {
 			w.WriteHeader(http.StatusNotFound)
