@@ -3,9 +3,9 @@ package main
 import (
 	"github.com/ananaslegend/short-link/api/handlers/redirect"
 	"github.com/ananaslegend/short-link/api/handlers/save"
+	"github.com/ananaslegend/short-link/api/mw"
 	"github.com/ananaslegend/short-link/config"
 	"github.com/ananaslegend/short-link/logs"
-	"github.com/ananaslegend/short-link/mw"
 	"github.com/ananaslegend/short-link/services/link"
 	"github.com/ananaslegend/short-link/storage"
 	"golang.org/x/exp/slog"

@@ -65,6 +65,9 @@ func Handle(w http.ResponseWriter, r *http.Request, log *slog.Logger, service Li
 			}
 			return
 		}
+
+		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 
 	w.WriteHeader(http.StatusCreated)
