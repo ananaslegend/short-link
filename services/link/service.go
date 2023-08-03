@@ -5,10 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/ananaslegend/short-link/errs"
-	"github.com/ananaslegend/short-link/logs"
 	"github.com/ananaslegend/short-link/shortner"
 	"github.com/google/uuid"
-	"golang.org/x/exp/slog"
 	"strings"
 )
 
@@ -19,13 +17,11 @@ type LinkRepo interface {
 
 type LinkService struct {
 	repo LinkRepo
-	log  *slog.Logger
 }
 
-func New(log *slog.Logger, lp LinkRepo) *LinkService {
+func New(lp LinkRepo) *LinkService {
 	return &LinkService{
 		repo: lp,
-		log:  log,
 	}
 }
 
@@ -45,8 +41,7 @@ func (ls LinkService) AddLink(c context.Context, link, alias string) (string, er
 	if err := ls.repo.InsertLink(link, alias); err != nil {
 		if errors.Is(err, errs.ErrAliasExists) {
 			if autoAlias {
-				ls.log.Error(fmt.Sprintf("auto generated alias already exists"), logs.Err(err))
-				return "", errs.ErrAutoAliasAlreadyExists
+				return "", fmt.Errorf("%s: %w, alias: %s", op, errs.ErrAutoAliasAlreadyExists, alias)
 			}
 
 			err = fmt.Errorf("%s: %w", op, err)

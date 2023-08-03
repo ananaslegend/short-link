@@ -28,7 +28,7 @@ type Response struct {
 
 func Handle(w http.ResponseWriter, r *http.Request, log *slog.Logger, service LinkAdder) {
 	const op = "api.handlers.save.link.Handle"
-	log.With(slog.String("op", op))
+	log = log.With(slog.String("op", op))
 	var (
 		req  Request
 		resp Response
@@ -51,6 +51,7 @@ func Handle(w http.ResponseWriter, r *http.Request, log *slog.Logger, service Li
 	addedAlias, err := service.AddLink(r.Context(), req.Link, req.Alias)
 	if err != nil {
 		if errors.Is(err, errs.ErrAutoAliasAlreadyExists) {
+			log.Error("auto generated alias already exists", logs.Err(err))
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}

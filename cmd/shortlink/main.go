@@ -31,7 +31,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	linkService := link.New(log, db)
+	linkService := link.New(db)
 
 	m := http.NewServeMux()
 
@@ -47,7 +47,6 @@ func main() {
 		}
 	})
 
-	// start server
 	s := http.Server{
 		Addr:    cfg.HttpServer.Port,
 		Handler: recoverHandler(log, m),
