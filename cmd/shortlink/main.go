@@ -30,6 +30,7 @@ func main() {
 		log.Error("cant prepare database", logs.Err(err))
 		os.Exit(1)
 	}
+	defer db.Close()
 
 	linkService := link.New(db)
 

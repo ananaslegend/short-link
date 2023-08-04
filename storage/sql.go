@@ -11,6 +11,13 @@ type Sql struct {
 	db *sql.DB
 }
 
+func (s *Sql) Close() {
+	err := s.db.Close()
+	if err != nil {
+		return
+	}
+}
+
 func (s Sql) PrepareStorage() error {
 	const op = "storage.sql.PrepareStorage"
 
@@ -43,7 +50,9 @@ func (s Sql) InsertLink(link, alias string) error {
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
-	if _, err = stmt.Exec(alias, link); err != nil {
+	defer stmt.Close()
+
+	if _, err := stmt.Exec(alias, link); err != nil {
 		if sqliteErr, ok := err.(sqlite3.Error); ok && sqliteErr.ExtendedCode == sqlite3.ErrConstraintUnique { // TODO: sqlite3.Error прив'язались
 			return fmt.Errorf("%s: \"%s\" %w", op, alias, errs.ErrAliasExists)
 		}
