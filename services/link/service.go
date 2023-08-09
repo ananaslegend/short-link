@@ -12,7 +12,7 @@ import (
 
 type LinkRepo interface {
 	InsertLink(link, alias string) error
-	SelectLink(alias string) (string, error)
+	SelectLink(ctx context.Context, alias string) (string, error)
 }
 
 type LinkService struct {
@@ -25,7 +25,7 @@ func New(lp LinkRepo) *LinkService {
 	}
 }
 
-func (ls LinkService) AddLink(c context.Context, link, alias string) (string, error) {
+func (ls LinkService) AddLink(ctx context.Context, link, alias string) (string, error) {
 	const op = "services.link.Add"
 
 	var autoAlias bool
@@ -52,14 +52,14 @@ func (ls LinkService) AddLink(c context.Context, link, alias string) (string, er
 	return alias, nil
 }
 
-func (ls LinkService) GetLink(c context.Context, alias string) (string, error) {
+func (ls LinkService) GetLink(ctx context.Context, alias string) (string, error) {
 	const op = "services.link.Get"
 
 	if alias == "" {
 		return "", errs.ErrEmptyAlias
 	}
 
-	link, err := ls.repo.SelectLink(alias)
+	link, err := ls.repo.SelectLink(ctx, alias)
 	if err != nil {
 		return "", fmt.Errorf("%s: %w", op, err)
 	}

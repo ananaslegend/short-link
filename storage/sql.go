@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"github.com/ananaslegend/short-link/errs"
@@ -63,7 +64,7 @@ func (s Sql) InsertLink(link, alias string) error {
 	return nil
 }
 
-func (s Sql) SelectLink(alias string) (string, error) {
+func (s Sql) SelectLink(ctx context.Context, alias string) (string, error) {
 	const op = "storage.sql.SelectLink"
 
 	stmt, err := s.db.Prepare(`
@@ -76,7 +77,7 @@ func (s Sql) SelectLink(alias string) (string, error) {
 	}
 
 	var link string
-	if err = stmt.QueryRow(alias).Scan(&link); err != nil {
+	if err = stmt.QueryRowContext(ctx, alias).Scan(&link); err != nil {
 		return "", fmt.Errorf("%s: %w", op, err)
 	}
 
