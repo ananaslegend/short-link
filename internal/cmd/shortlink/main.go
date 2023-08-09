@@ -1,13 +1,12 @@
 package main
 
 import (
-	"github.com/ananaslegend/short-link/api/handlers/redirect"
-	"github.com/ananaslegend/short-link/api/handlers/save"
-	"github.com/ananaslegend/short-link/api/mw"
-	"github.com/ananaslegend/short-link/config"
-	"github.com/ananaslegend/short-link/logs"
-	"github.com/ananaslegend/short-link/services/link"
-	"github.com/ananaslegend/short-link/storage"
+	handlers2 "github.com/ananaslegend/short-link/internal/api/handlers"
+	"github.com/ananaslegend/short-link/internal/api/mw"
+	"github.com/ananaslegend/short-link/internal/config"
+	"github.com/ananaslegend/short-link/internal/services/link"
+	"github.com/ananaslegend/short-link/internal/storage"
+	"github.com/ananaslegend/short-link/pkg/logs"
 	"log/slog"
 	"net/http"
 
@@ -38,13 +37,13 @@ func main() {
 
 	m.HandleFunc("/", mw.WithRequestId(
 		func(w http.ResponseWriter, r *http.Request) {
-			redirect.Handle(w, r, log, linkService)
+			handlers2.Redirect(w, r, log, linkService)
 		}))
 
 	m.HandleFunc("/link", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodPost:
-			save.Handle(w, r, log, linkService)
+			handlers2.SaveLink(w, r, log, linkService)
 		}
 	})
 

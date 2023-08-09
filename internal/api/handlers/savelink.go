@@ -1,12 +1,12 @@
-package save
+package handlers
 
 import (
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/ananaslegend/short-link/errs"
-	"github.com/ananaslegend/short-link/logs"
+	"github.com/ananaslegend/short-link/pkg/errs"
+	"github.com/ananaslegend/short-link/pkg/logs"
 	"io"
 	"log/slog"
 	"net/http"
@@ -26,8 +26,8 @@ type Response struct {
 	Error string `json:"error,omitempty"`
 }
 
-func Handle(w http.ResponseWriter, r *http.Request, log *slog.Logger, service LinkAdder) {
-	const op = "api.handlers.save.link.Handle"
+func SaveLink(w http.ResponseWriter, r *http.Request, log *slog.Logger, service LinkAdder) {
+	const op = "api.handlers.SaveLink"
 	log = log.With(slog.String("op", op))
 	var (
 		req  Request

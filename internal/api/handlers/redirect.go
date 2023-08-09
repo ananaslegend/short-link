@@ -1,10 +1,10 @@
-package redirect
+package handlers
 
 import (
 	"context"
 	"errors"
-	"github.com/ananaslegend/short-link/errs"
-	"github.com/ananaslegend/short-link/logs"
+	"github.com/ananaslegend/short-link/pkg/errs"
+	"github.com/ananaslegend/short-link/pkg/logs"
 	"log/slog"
 	"net/http"
 	"strings"
@@ -14,8 +14,8 @@ type LinkGetter interface {
 	GetLink(c context.Context, alias string) (string, error)
 }
 
-func Handle(w http.ResponseWriter, r *http.Request, log *slog.Logger, lg LinkGetter) {
-	const op = "api.handlers.redirect.Handle"
+func Redirect(w http.ResponseWriter, r *http.Request, log *slog.Logger, lg LinkGetter) {
+	const op = "api.handlers.Redirect"
 	log.With(slog.String("op", op))
 
 	path := r.URL.Path

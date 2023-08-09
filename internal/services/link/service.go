@@ -4,14 +4,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/ananaslegend/short-link/errs"
-	"github.com/ananaslegend/short-link/shortner"
+	"github.com/ananaslegend/short-link/pkg/errs"
+	"github.com/ananaslegend/short-link/pkg/shortner"
 	"github.com/google/uuid"
 	"strings"
 )
 
 type LinkRepo interface {
-	InsertLink(link, alias string) error
+	InsertLink(ctx context.Context, link, alias string) error
 	SelectLink(ctx context.Context, alias string) (string, error)
 }
 
@@ -38,7 +38,7 @@ func (ls LinkService) AddLink(ctx context.Context, link, alias string) (string, 
 		link = "http://" + link
 	}
 
-	if err := ls.repo.InsertLink(link, alias); err != nil {
+	if err := ls.repo.InsertLink(ctx, link, alias); err != nil {
 		if errors.Is(err, errs.ErrAliasExists) {
 			if autoAlias {
 				return "", fmt.Errorf("%s: %w, alias: %s", op, errs.ErrAutoAliasAlreadyExists, alias)

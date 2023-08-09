@@ -1,7 +1,7 @@
 package shortner
 
 import (
-	"github.com/ananaslegend/short-link/utils"
+	"github.com/ananaslegend/short-link/pkg/utils"
 	"strings"
 )
 

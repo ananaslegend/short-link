@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"github.com/ananaslegend/short-link/errs"
+	"github.com/ananaslegend/short-link/pkg/errs"
 	"github.com/mattn/go-sqlite3"
 )
 
@@ -40,7 +40,7 @@ func (s Sql) PrepareStorage() error {
 	return nil
 }
 
-func (s Sql) InsertLink(link, alias string) error {
+func (s Sql) InsertLink(ctx context.Context, link, alias string) error {
 	const op = "storage.sql.InsertLink"
 
 	stmt, err := s.db.Prepare(`
@@ -53,7 +53,7 @@ func (s Sql) InsertLink(link, alias string) error {
 
 	defer stmt.Close()
 
-	if _, err := stmt.Exec(alias, link); err != nil {
+	if _, err := stmt.ExecContext(ctx, alias, link); err != nil {
 		if sqliteErr, ok := err.(sqlite3.Error); ok && sqliteErr.ExtendedCode == sqlite3.ErrConstraintUnique { // TODO: sqlite3.Error прив'язались
 			return fmt.Errorf("%s: \"%s\" %w", op, alias, errs.ErrAliasExists)
 		}
