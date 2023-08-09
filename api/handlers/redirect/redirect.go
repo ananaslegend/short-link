@@ -5,7 +5,7 @@ import (
 	"errors"
 	"github.com/ananaslegend/short-link/errs"
 	"github.com/ananaslegend/short-link/logs"
-	"golang.org/x/exp/slog"
+	"log/slog"
 	"net/http"
 	"strings"
 )

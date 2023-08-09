@@ -8,7 +8,7 @@ import (
 	"github.com/ananaslegend/short-link/logs"
 	"github.com/ananaslegend/short-link/services/link"
 	"github.com/ananaslegend/short-link/storage"
-	"golang.org/x/exp/slog"
+	"log/slog"
 	"net/http"
 
 	"os"

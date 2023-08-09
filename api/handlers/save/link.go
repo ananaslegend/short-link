@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"github.com/ananaslegend/short-link/errs"
 	"github.com/ananaslegend/short-link/logs"
-	"golang.org/x/exp/slog"
 	"io"
+	"log/slog"
 	"net/http"
 )
 

@@ -2,7 +2,7 @@ package logs
 
 import (
 	"github.com/ananaslegend/short-link/config"
-	"golang.org/x/exp/slog"
+	"log/slog"
 	"os"
 )
 
