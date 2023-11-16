@@ -7,7 +7,7 @@ import (
 	"fmt"
 )
 
-func NewSqliteStorage(dbPath string) (*Sql, error) {
+func NewSqliteStorage(dbPath string) (*sql.DB, error) {
 	const op = "storage.sqlite.NewSqliteStorage"
 
 	db, err := sql.Open("sqlite3", dbPath)
@@ -19,5 +19,5 @@ func NewSqliteStorage(dbPath string) (*Sql, error) {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	return &Sql{db: db}, nil
+	return db, nil
 }

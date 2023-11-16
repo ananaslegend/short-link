@@ -1,18 +1,17 @@
-package handlers
+package save
 
 import (
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/ananaslegend/short-link/pkg/errs"
 	"github.com/ananaslegend/short-link/pkg/logs"
 	"io"
 	"log/slog"
 	"net/http"
 )
 
-type LinkAdder interface {
+type LinkSetterUseCase interface {
 	AddLink(c context.Context, link, alias string) (string, error)
 }
 
@@ -26,9 +25,21 @@ type Response struct {
 	Error string `json:"error,omitempty"`
 }
 
-func SaveLink(w http.ResponseWriter, r *http.Request, log *slog.Logger, service LinkAdder) {
-	const op = "api.handlers.SaveLink"
-	log = log.With(slog.String("op", op))
+type Handler struct {
+	useCase LinkSetterUseCase
+	log     *slog.Logger
+}
+
+func NewHandler(uc LinkSetterUseCase, log *slog.Logger) *Handler {
+	return &Handler{
+		useCase: uc,
+		log:     log,
+	}
+}
+
+func (h Handler) HandleHTTP(w http.ResponseWriter, r *http.Request) {
+	const op = "internal.save.handler.HandleHTTP"
+	log := h.log.With(slog.String("op", op))
 	var (
 		req  Request
 		resp Response
@@ -43,19 +54,19 @@ func SaveLink(w http.ResponseWriter, r *http.Request, log *slog.Logger, service 
 
 	if err = json.Unmarshal(b, &req); err != nil { // TODO Add Validation
 		err = fmt.Errorf("%s:%w", op, err)
-		log.Error("cant unmarshal request body", logs.Err(err))
-		w.WriteHeader(http.StatusInternalServerError)
+		log.Info(fmt.Sprintf("cant unmarshal request body. body: %s", b), logs.Err(err))
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	addedAlias, err := service.AddLink(r.Context(), req.Link, req.Alias)
+	addedAlias, err := h.useCase.AddLink(r.Context(), req.Link, req.Alias)
 	if err != nil {
-		if errors.Is(err, errs.ErrAutoAliasAlreadyExists) {
+		if errors.Is(err, ErrAutoAliasAlreadyExists) {
 			log.Error("auto generated alias already exists", logs.Err(err))
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-		if errors.Is(err, errs.ErrAliasExists) {
+		if errors.Is(err, ErrAliasAlreadyExists) {
 			w.WriteHeader(http.StatusConflict)
 			w.Header().Set("Content-Type", "application/json")
 			resp.Error = "alias already exists"

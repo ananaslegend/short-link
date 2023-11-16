@@ -1,7 +1,7 @@
 package logs
 
 import (
-	"github.com/ananaslegend/short-link/internal/config"
+	"github.com/ananaslegend/short-link/pkg/config"
 	"log/slog"
 	"os"
 )

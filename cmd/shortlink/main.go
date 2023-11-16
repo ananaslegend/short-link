@@ -1,12 +1,12 @@
 package main
 
 import (
-	handlers2 "github.com/ananaslegend/short-link/internal/api/handlers"
-	"github.com/ananaslegend/short-link/internal/api/mw"
-	"github.com/ananaslegend/short-link/internal/config"
-	"github.com/ananaslegend/short-link/internal/services/link"
-	"github.com/ananaslegend/short-link/internal/storage"
+	"github.com/ananaslegend/short-link/internal/middleware"
+	"github.com/ananaslegend/short-link/internal/redirect"
+	"github.com/ananaslegend/short-link/internal/save"
+	"github.com/ananaslegend/short-link/pkg/config"
 	"github.com/ananaslegend/short-link/pkg/logs"
+	"github.com/ananaslegend/short-link/pkg/storage"
 	"log/slog"
 	"net/http"
 
@@ -25,25 +25,39 @@ func main() {
 		log.Error("cant connect to database", logs.Err(err))
 		os.Exit(1)
 	}
-	if err = db.PrepareStorage(); err != nil {
+	log.Debug("database connected")
+	defer storage.Close(db, log)
+
+	err = storage.Prepare(db)
+	if err != nil {
 		log.Error("cant prepare database", logs.Err(err))
 		os.Exit(1)
 	}
-	defer db.Close()
-
-	linkService := link.New(db)
+	log.Debug("database prepared")
 
 	m := http.NewServeMux()
 
-	m.HandleFunc("/", mw.WithRequestId(
+	redirectRepo := redirect.NewRepository(db)
+	redirectUseCase := redirect.NewUseCase(redirectRepo)
+	redirectHandler := redirect.NewHandler(redirectUseCase, log)
+
+	m.HandleFunc("/", middleware.WithRequestId(
 		func(w http.ResponseWriter, r *http.Request) {
-			handlers2.Redirect(w, r, log, linkService)
-		}))
+			switch r.Method {
+			case http.MethodGet:
+				redirectHandler.HandleHTTP(w, r)
+			}
+		}),
+	)
+
+	saveRepo := save.NewRepository(db)
+	saveUseCase := save.NewUseCase(saveRepo)
+	saveHandler := save.NewHandler(saveUseCase, log)
 
 	m.HandleFunc("/link", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodPost:
-			handlers2.SaveLink(w, r, log, linkService)
+			saveHandler.HandleHTTP(w, r)
 		}
 	})
 
