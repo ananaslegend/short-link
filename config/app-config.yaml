@@ -1,4 +1,12 @@
+# env is used to determine which deployment environment the app is running in.
 env: "local"
+# db_conn is the connection string for the database.
 db_conn: "storage/sqlite_storage.db"
+# http_server is the configuration for the http server.
 http_server:
   port: ":8080"
+# link_cache is the configuration for the link cache.
+link_cache:
+  # ttl - time to live in seconds.
+  ttl: 600
+  type: "bigcache"

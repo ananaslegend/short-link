@@ -6,7 +6,8 @@ import (
 	"github.com/ananaslegend/short-link/internal/save"
 	"github.com/ananaslegend/short-link/pkg/config"
 	"github.com/ananaslegend/short-link/pkg/logs"
-	"github.com/ananaslegend/short-link/pkg/storage"
+	"github.com/ananaslegend/short-link/pkg/storage/cache"
+	"github.com/ananaslegend/short-link/pkg/storage/sql"
 	"log/slog"
 	"net/http"
 
@@ -20,25 +21,32 @@ func main() {
 	log := logs.SetUpLogger(cfg)
 	log.Info("short-link app started", slog.String("env", string(cfg.Env)))
 
-	db, err := storage.NewSqliteStorage(cfg.DbConn)
+	db, err := sql.NewSqliteStorage(cfg.DbConn)
 	if err != nil {
 		log.Error("cant connect to database", logs.Err(err))
 		os.Exit(1)
 	}
 	log.Debug("database connected")
-	defer storage.Close(db, log)
+	defer sql.Close(db, log)
 
-	err = storage.Prepare(db)
+	err = sql.Prepare(db)
 	if err != nil {
 		log.Error("cant prepare database", logs.Err(err))
 		os.Exit(1)
 	}
 	log.Debug("database prepared")
 
+	linkCache, err := cache.NewCache(cfg.LinkCache)
+	if err != nil {
+		log.Error("cant create link_cache", logs.Err(err))
+		os.Exit(1)
+	}
+
 	m := http.NewServeMux()
 
 	redirectRepo := redirect.NewRepository(db)
-	redirectUseCase := redirect.NewUseCase(redirectRepo)
+	cachedRedirectRepo := redirect.NewCachedRepository(redirectRepo, linkCache)
+	redirectUseCase := redirect.NewUseCase(cachedRedirectRepo)
 	redirectHandler := redirect.NewHandler(redirectUseCase, log)
 
 	m.HandleFunc("/", middleware.WithRequestId(

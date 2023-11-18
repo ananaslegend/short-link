@@ -2,6 +2,7 @@ package redirect
 
 import (
 	"context"
+	"errors"
 	"fmt"
 )
 
@@ -28,6 +29,9 @@ func (uc UseCase) GetLink(ctx context.Context, alias string) (string, error) {
 
 	link, err := uc.repo.SelectLink(ctx, alias)
 	if err != nil {
+		if errors.Is(err, ErrCantSetToCache) {
+			return link, fmt.Errorf("%s: %w", op, err)
+		}
 		return "", fmt.Errorf("%s: %w", op, err)
 	}
 

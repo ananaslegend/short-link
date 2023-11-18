@@ -2,8 +2,8 @@
 
 - розібратися з контекстами ✅ 
 - розбити на папки internal та pkg ✅
-- передивитись логи
-- linter
+- передивитись логи ✅
+- linter ✅
 - tests
 - cashing for redirect use case
 - metrics

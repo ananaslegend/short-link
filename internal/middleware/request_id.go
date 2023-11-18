@@ -6,14 +6,14 @@ import (
 	"net/http"
 )
 
-const RequestId = "requestId"
+type RequestID struct{}
 
 // WithRequestId - middleware to provide unique uuid ver 2 and push it context.Context of http.Request.
-// Use constant middleware.RequestId to get it from context.
+// Use constant middleware.RequestID to get it from context.
 func WithRequestId(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		reqId := uuid.New().ID()
-		ctx := context.WithValue(r.Context(), RequestId, reqId)
+		ctx := context.WithValue(r.Context(), RequestID{}, reqId)
 
 		next(w, r.WithContext(ctx))
 	}

@@ -14,10 +14,23 @@ const (
 	Local Env = "local"
 )
 
+type CacheType string
+
+const (
+	BigCache = "bigcache"
+	Redis    = "redis"
+)
+
+type Cache struct {
+	TTL       int       `yaml:"ttl"`
+	CacheType CacheType `yaml:"type"`
+}
+
 type AppConfig struct {
 	Env        Env        `yaml:"env"`
 	DbConn     string     `yaml:"db_conn" env-required:"true"`
 	HttpServer HttpServer `yaml:"http_server"`
+	LinkCache  Cache      `yaml:"link_cache"`
 }
 
 type HttpServer struct {
@@ -25,6 +38,8 @@ type HttpServer struct {
 	// TODO timeouts
 }
 
+// MustLoadYaml loads config from yaml file and panic if error occurred.
+// Config path have format: ../path/to/config.yaml
 func MustLoadYaml(confPath string) AppConfig {
 	if confPath == "" {
 		log.Fatalf("config path is empty")
@@ -37,6 +52,8 @@ func MustLoadYaml(confPath string) AppConfig {
 	cfg := &AppConfig{
 		HttpServer: HttpServer{},
 	}
+	dir, _ := os.Getwd()
+	log.Printf("dir: %s", dir)
 	if data, err := os.ReadFile(confPath); err != nil {
 		log.Fatalf("failed to read config file: %s", err)
 	} else {

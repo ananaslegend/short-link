@@ -39,13 +39,18 @@ func (h Handler) HandleHTTP(w http.ResponseWriter, r *http.Request) {
 
 	link, err := h.useCase.GetLink(r.Context(), alias)
 	if err != nil {
-		if errors.Is(err, ErrAliasNotFound) {
+		switch {
+		case errors.Is(err, ErrAliasNotFound):
 			w.WriteHeader(http.StatusNotFound)
 			return
+		case errors.Is(err, ErrCantSetToCache):
+			http.Redirect(w, r, link, http.StatusFound)
+			return
+		default:
+			log.Error("failed to get link", logs.Err(err))
+			w.WriteHeader(http.StatusInternalServerError)
+			return
 		}
-		log.Error("failed to get link", logs.Err(err))
-		w.WriteHeader(http.StatusInternalServerError)
-		return
 	}
 
 	http.Redirect(w, r, link, http.StatusFound)

@@ -89,6 +89,4 @@ func (h Handler) HandleHTTP(w http.ResponseWriter, r *http.Request) {
 		log.Error("cant encode json", logs.Err(err))
 		w.WriteHeader(http.StatusInternalServerError)
 	}
-	return
-
 }

@@ -24,7 +24,7 @@ func (r Repository) InsertLink(ctx context.Context, link, alias string) error {
 	values (?,?)
 `)
 	if err != nil {
-		return fmt.Errorf("%r: %w", op, err)
+		return fmt.Errorf("%s: %w", op, err)
 	}
 
 	defer stmt.Close()
@@ -35,7 +35,7 @@ func (r Repository) InsertLink(ctx context.Context, link, alias string) error {
 			return ErrAliasAlreadyExists
 		}
 
-		return fmt.Errorf("%r: %w", op, err)
+		return fmt.Errorf("%s: %w", op, err)
 	}
 
 	return nil

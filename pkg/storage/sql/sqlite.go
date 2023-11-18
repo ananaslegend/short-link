@@ -1,4 +1,4 @@
-package storage
+package sql
 
 import (
 	_ "github.com/mattn/go-sqlite3"
