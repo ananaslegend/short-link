@@ -25,8 +25,8 @@ func NewHandler(uc GetLinkUseCase, log *slog.Logger) *Handler {
 	}
 }
 
-func (h Handler) HandleHTTP(w http.ResponseWriter, r *http.Request) {
-	const op = "api.handlers.HandleHTTP"
+func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	const op = "api.handlers.ServeHTTP"
 	log := h.log.With(slog.String("op", op))
 
 	path := r.URL.Path

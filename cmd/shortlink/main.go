@@ -1,15 +1,20 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"github.com/ananaslegend/short-link/internal/middleware"
 	"github.com/ananaslegend/short-link/internal/redirect"
 	"github.com/ananaslegend/short-link/internal/save"
+	"github.com/ananaslegend/short-link/pkg/closer"
 	"github.com/ananaslegend/short-link/pkg/config"
 	"github.com/ananaslegend/short-link/pkg/logs"
 	"github.com/ananaslegend/short-link/pkg/storage/cache"
 	"github.com/ananaslegend/short-link/pkg/storage/sql"
 	"log/slog"
 	"net/http"
+	"os/signal"
+	"syscall"
 
 	"os"
 )
@@ -20,6 +25,10 @@ func main() {
 
 	log := logs.SetUpLogger(cfg)
 	log.Info("short-link app started", slog.String("env", string(cfg.Env)))
+
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+	gracefulCloser := closer.New()
 
 	db, err := sql.NewSqliteStorage(cfg.DbConn)
 	if err != nil {
@@ -53,7 +62,7 @@ func main() {
 		func(w http.ResponseWriter, r *http.Request) {
 			switch r.Method {
 			case http.MethodGet:
-				redirectHandler.HandleHTTP(w, r)
+				redirectHandler.ServeHTTP(w, r)
 			}
 		}),
 	)
@@ -65,27 +74,32 @@ func main() {
 	m.HandleFunc("/link", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodPost:
-			saveHandler.HandleHTTP(w, r)
+			saveHandler.ServeHTTP(w, r)
 		}
 	})
 
 	s := http.Server{
 		Addr:    cfg.HttpServer.Port,
-		Handler: recoverHandler(log, m),
+		Handler: middleware.WithRecover(log, m),
 	}
 
-	if err = s.ListenAndServe(); err != nil {
-		log.Error("HTTP server", logs.Err(err))
-		os.Exit(1)
-	}
-}
+	gracefulCloser.Add(s.Shutdown)
 
-func recoverHandler(log *slog.Logger, m *http.ServeMux) http.Handler {
-	defer func() {
-		if r := recover(); r != nil {
-			log.Error("app in panic", r)
+	go func() {
+		if err = s.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
+			log.Error("HTTP server", logs.Err(err))
+			os.Exit(1)
 		}
 	}()
 
-	return m
+	<-ctx.Done()
+
+	log.Info("shutting down server gracefully")
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), cfg.ShutDownTimeout)
+	defer cancel()
+
+	if err = gracefulCloser.Close(shutdownCtx); err != nil {
+		log.Error("graceful shutdown with errors", logs.Err(err))
+	}
+	log.Info("graceful shutdown finished")
 }

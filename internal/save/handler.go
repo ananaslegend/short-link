@@ -37,8 +37,8 @@ func NewHandler(uc LinkSetterUseCase, log *slog.Logger) *Handler {
 	}
 }
 
-func (h Handler) HandleHTTP(w http.ResponseWriter, r *http.Request) {
-	const op = "internal.save.handler.HandleHTTP"
+func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	const op = "internal.save.handler.ServeHTTP"
 	log := h.log.With(slog.String("op", op))
 	var (
 		req  Request

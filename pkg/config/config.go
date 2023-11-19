@@ -4,6 +4,7 @@ import (
 	"gopkg.in/yaml.v3"
 	"log"
 	"os"
+	"time"
 )
 
 type Env string
@@ -22,15 +23,16 @@ const (
 )
 
 type Cache struct {
-	TTL       int       `yaml:"ttl"`
-	CacheType CacheType `yaml:"type"`
+	TTL       time.Duration `yaml:"ttl"`
+	CacheType CacheType     `yaml:"type"`
 }
 
 type AppConfig struct {
-	Env        Env        `yaml:"env"`
-	DbConn     string     `yaml:"db_conn" env-required:"true"`
-	HttpServer HttpServer `yaml:"http_server"`
-	LinkCache  Cache      `yaml:"link_cache"`
+	Env             Env           `yaml:"env"`
+	DbConn          string        `yaml:"db_conn" env-required:"true"`
+	HttpServer      HttpServer    `yaml:"http_server"`
+	LinkCache       Cache         `yaml:"link_cache"`
+	ShutDownTimeout time.Duration `yaml:"shut_down_timeout"`
 }
 
 type HttpServer struct {

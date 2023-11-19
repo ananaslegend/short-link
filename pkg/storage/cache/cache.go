@@ -26,7 +26,7 @@ func NewCache(cfg config.Cache) (*Cache, error) {
 
 	switch cfg.CacheType {
 	case config.BigCache:
-		if cache.Cacher, err = NewBigCache(bigcache.DefaultConfig(time.Duration(cfg.TTL) * time.Second)); err != nil {
+		if cache.Cacher, err = NewBigCache(bigcache.DefaultConfig(cfg.TTL * time.Second)); err != nil {
 			return nil, err
 		}
 	default:

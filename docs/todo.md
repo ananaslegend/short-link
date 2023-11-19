@@ -4,9 +4,12 @@
 - розбити на папки internal та pkg ✅
 - передивитись логи ✅
 - linter ✅
-- tests
-- cashing for redirect use case
+- tests ✅
+- cashing for redirect use case ✅
+- graceful shutdown ✅
 - metrics
+- graphql api
+- grpc api
 - click house
 - додати якийсь прикол в path параметр типу (client/link) (iqos/go-kit)
 - додати юзерів і таблицю LinkUsers (m2m)
