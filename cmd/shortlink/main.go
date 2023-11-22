@@ -6,6 +6,7 @@ import (
 	"github.com/ananaslegend/short-link/internal/middleware"
 	"github.com/ananaslegend/short-link/internal/redirect"
 	"github.com/ananaslegend/short-link/internal/save"
+	"github.com/ananaslegend/short-link/internal/statistic"
 	"github.com/ananaslegend/short-link/pkg/closer"
 	"github.com/ananaslegend/short-link/pkg/config"
 	"github.com/ananaslegend/short-link/pkg/logs"
@@ -15,6 +16,7 @@ import (
 	"net/http"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"os"
 )
@@ -51,11 +53,15 @@ func main() {
 		os.Exit(1)
 	}
 
+	statRepo := statistic.NewRepository(db)
+	statManager := statistic.NewManager(time.Duration(100)*time.Second, 1000, statRepo, log)
+	gracefulCloser.Add(statManager.Close)
+
 	m := http.NewServeMux()
 
 	redirectRepo := redirect.NewRepository(db)
 	cachedRedirectRepo := redirect.NewCachedRepository(redirectRepo, linkCache)
-	redirectUseCase := redirect.NewUseCase(cachedRedirectRepo)
+	redirectUseCase := redirect.NewUseCase(cachedRedirectRepo, statManager)
 	redirectHandler := redirect.NewHandler(redirectUseCase, log)
 
 	m.HandleFunc("/", middleware.WithRequestId(

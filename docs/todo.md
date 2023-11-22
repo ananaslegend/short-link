@@ -4,9 +4,11 @@
 - розбити на папки internal та pkg ✅
 - передивитись логи ✅
 - linter ✅
-- tests ✅
+- tests ▶️
 - cashing for redirect use case ✅
 - graceful shutdown ✅
+- graceful shutdown for db ▶️
+- stat ▶️
 - metrics
 - graphql api
 - grpc api
