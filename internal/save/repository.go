@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/mattn/go-sqlite3"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -29,10 +30,9 @@ func (r Repository) InsertLink(ctx context.Context, link, alias string) error {
 	defer stmt.Close()
 
 	if _, err = stmt.ExecContext(ctx, alias, link); err != nil {
-		//if sqliteErr := err.(sqlite3.Error); sqliteErr.ExtendedCode == sqlite3.ErrConstraintUnique {
-		//	return ErrAliasAlreadyExists
-		//}
-		// TODO
+		if sqliteErr := err.(sqlite3.Error); sqliteErr.ExtendedCode == sqlite3.ErrConstraintUnique {
+			return ErrAliasAlreadyExists
+		}
 
 		return fmt.Errorf("%s: %w", op, err)
 	}
