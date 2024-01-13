@@ -51,7 +51,7 @@ func MustLoadYaml(confPath string) AppConfig {
 		log.Fatalf("config file not found: %s", confPath)
 	}
 
-	cfg := &AppConfig{
+	cfg := AppConfig{
 		HttpServer: HttpServer{},
 	}
 	dir, _ := os.Getwd()
@@ -64,5 +64,5 @@ func MustLoadYaml(confPath string) AppConfig {
 		}
 	}
 
-	return *cfg
+	return cfg
 }

@@ -41,9 +41,7 @@ func newRows(rowsCap int) Rows {
 }
 
 func (m Metric) append(new Metric) Metric {
-	res := Metric{}
-
 	m.Redirect += new.Redirect
 
-	return res
+	return m
 }

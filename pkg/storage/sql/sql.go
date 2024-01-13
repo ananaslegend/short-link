@@ -35,5 +35,20 @@ func Prepare(db *sql.DB) error {
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
+	stmt, err = db.Prepare(`
+		create table if not exists statistic(
+	    id integer primary key,
+	    redirect_time_stamp integer,
+	    link text,
+		redirect integer                      
+	);`)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	if _, err = stmt.Exec(); err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
 	return nil
 }

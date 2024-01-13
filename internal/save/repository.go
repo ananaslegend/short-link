@@ -3,9 +3,8 @@ package save
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
-	"github.com/mattn/go-sqlite3"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 type Repository struct {
@@ -30,10 +29,10 @@ func (r Repository) InsertLink(ctx context.Context, link, alias string) error {
 	defer stmt.Close()
 
 	if _, err = stmt.ExecContext(ctx, alias, link); err != nil {
-		var sqliteErr sqlite3.Error
-		if errors.As(err, &sqliteErr) && sqliteErr.ExtendedCode == sqlite3.ErrConstraintUnique {
-			return ErrAliasAlreadyExists
-		}
+		//if sqliteErr := err.(sqlite3.Error); sqliteErr.ExtendedCode == sqlite3.ErrConstraintUnique {
+		//	return ErrAliasAlreadyExists
+		//}
+		// TODO
 
 		return fmt.Errorf("%s: %w", op, err)
 	}

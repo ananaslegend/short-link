@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	"flag"
 	"github.com/ananaslegend/short-link/internal/middleware"
 	"github.com/ananaslegend/short-link/internal/redirect"
 	"github.com/ananaslegend/short-link/internal/save"
@@ -22,8 +23,9 @@ import (
 )
 
 func main() {
-	confPath := os.Getenv("APP_CONFIG")
-	cfg := config.MustLoadYaml(confPath)
+	confPath := flag.String("config", "../../config/app-config.yml", "path to config file")
+	flag.Parse()
+	cfg := config.MustLoadYaml(*confPath)
 
 	log := logs.SetUpLogger(cfg)
 	log.Info("short-link app started", slog.String("env", string(cfg.Env)))
@@ -54,7 +56,8 @@ func main() {
 	}
 
 	statRepo := statistic.NewRepository(db)
-	statManager := statistic.NewManager(time.Duration(100)*time.Second, 1000, statRepo, log)
+	statManager := statistic.NewManager(1*time.Minute, 1000, statRepo, log)
+	go statManager.Run()
 	gracefulCloser.Add(statManager.Close)
 
 	m := http.NewServeMux()

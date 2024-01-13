@@ -12,7 +12,7 @@ import (
 
 // Writer should insert stats to db.
 type Writer interface {
-	InsertRows(Rows) error
+	InsertRows(context.Context, Rows) error
 }
 
 type Manager struct {
@@ -25,7 +25,7 @@ type Manager struct {
 	flushTime time.Duration
 	writer    Writer
 
-	shutdownCh    chan struct{}
+	shutdownCh    chan context.Context
 	shutdownErrCh chan error
 }
 
@@ -34,7 +34,7 @@ func NewManager(flushTime time.Duration, rowsCap int, repository Writer, log *sl
 		rows:          newRows(rowsCap),
 		rowsCap:       rowsCap,
 		flushTime:     flushTime,
-		shutdownCh:    make(chan struct{}),
+		shutdownCh:    make(chan context.Context),
 		shutdownErrCh: make(chan error),
 		writer:        repository,
 		log:           log,
@@ -55,14 +55,14 @@ func (m *Manager) AppendRow(row *Row) {
 	m.Append(row.Dimension, row.Metric)
 }
 
-func (m *Manager) insert() error {
+func (m *Manager) insert(ctx context.Context) error {
 	const op = "statistic.manager.insert"
 	rowsToInsert := m.withdrawRows()
 	if len(rowsToInsert) == 0 {
 		return ErrNoSatatToInsert
 	}
 
-	if err := m.writer.InsertRows(rowsToInsert); err != nil {
+	if err := m.writer.InsertRows(ctx, rowsToInsert); err != nil {
 		for dimension, metric := range rowsToInsert {
 			m.Append(dimension, metric)
 		}
@@ -82,7 +82,7 @@ func (m *Manager) withdrawRows() Rows {
 }
 
 func (m *Manager) Close(ctx context.Context) error {
-	m.shutdownCh <- struct{}{}
+	m.shutdownCh <- ctx
 	defer close(m.shutdownCh)
 
 	err := <-m.shutdownErrCh
@@ -95,7 +95,7 @@ func (m *Manager) loop() {
 	for {
 		select {
 		case <-time.After(m.flushTime):
-			if err := m.insert(); err != nil {
+			if err := m.insert(context.Background()); err != nil {
 				switch {
 				case errors.Is(err, ErrNoSatatToInsert):
 					m.log.Warn(ErrNoSatatToInsert.Error())
@@ -103,13 +103,13 @@ func (m *Manager) loop() {
 					m.log.Error("cant insert stat rows in db", logs.Err(err))
 				}
 			}
-		case <-m.shutdownCh:
-			m.shutdownErrCh <- m.insert()
+		case ctx := <-m.shutdownCh:
+			m.shutdownErrCh <- m.insert(ctx)
 			return
 		}
 	}
 }
 
 func (m *Manager) Run() {
-	go m.loop()
+	m.loop()
 }

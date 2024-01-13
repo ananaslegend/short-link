@@ -6,9 +6,8 @@
 - linter ✅
 - tests ▶️
 - cashing for redirect use case ✅
-- graceful shutdown ✅
-- graceful shutdown for db ▶️
-- stat ▶️
+- graceful shutdown 
+- stat ✅
 - metrics
 - graphql api
 - grpc api
