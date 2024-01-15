@@ -33,6 +33,11 @@ type AppConfig struct {
 	HttpServer      HttpServer    `yaml:"http_server"`
 	LinkCache       Cache         `yaml:"link_cache"`
 	ShutDownTimeout time.Duration `yaml:"shut_down_timeout"`
+	Metrics         Metrics       `yaml:"metrics"`
+}
+
+type Metrics struct {
+	Port string `json:"port,omitempty"`
 }
 
 type HttpServer struct {

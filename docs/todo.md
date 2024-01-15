@@ -9,12 +9,12 @@
 - graceful shutdown 
 - stat ✅
 - metrics
+- github actions
+- click house
 - graphql api
 - grpc api
-- click house
 - додати якийсь прикол в path параметр типу (client/link) (iqos/go-kit)
 - додати юзерів і таблицю LinkUsers (m2m)
 - додати авторизацію на add 
 - delete handler
 - додати аутентифікацію на деліт
-- github actions

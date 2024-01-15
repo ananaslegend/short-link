@@ -41,6 +41,16 @@ func NewManager(flushTime time.Duration, rowsCap int, repository Writer, log *sl
 	}
 }
 
+func (m *Manager) Close(ctx context.Context) error {
+	m.shutdownCh <- ctx
+	defer close(m.shutdownCh)
+
+	err := <-m.shutdownErrCh
+	defer close(m.shutdownErrCh)
+
+	return err
+}
+
 func (m *Manager) Append(dimension Dimension, metric Metric) {
 	m.mx.Lock()
 	defer m.mx.Unlock()
@@ -49,6 +59,7 @@ func (m *Manager) Append(dimension Dimension, metric Metric) {
 	current = current.append(metric)
 
 	m.rows[dimension] = current
+	ObserveRowsCap(len(m.rows))
 }
 
 func (m *Manager) AppendRow(row *Row) {
@@ -79,16 +90,6 @@ func (m *Manager) withdrawRows() Rows {
 	m.rows = newRows(m.rowsCap)
 
 	return rows
-}
-
-func (m *Manager) Close(ctx context.Context) error {
-	m.shutdownCh <- ctx
-	defer close(m.shutdownCh)
-
-	err := <-m.shutdownErrCh
-	defer close(m.shutdownErrCh)
-
-	return err
 }
 
 func (m *Manager) loop() {

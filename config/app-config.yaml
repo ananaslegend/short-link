@@ -12,3 +12,5 @@ link_cache:
   type: "bigcache"
 # shut_down_timeout is the time in seconds to wait for the server to shut down gracefully.
 shut_down_timeout: 60s
+metrics:
+  port: "8081"

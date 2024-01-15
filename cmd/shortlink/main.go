@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"flag"
+	"github.com/ananaslegend/short-link/internal/metrics"
 	"github.com/ananaslegend/short-link/internal/middleware"
 	"github.com/ananaslegend/short-link/internal/redirect"
 	"github.com/ananaslegend/short-link/internal/save"
@@ -48,6 +49,12 @@ func main() {
 		os.Exit(1)
 	}
 	log.Debug("database prepared")
+
+	go func() {
+		if err := metrics.Listen(cfg.Metrics.Port); err != nil {
+			log.Error("cant listen metrics", logs.Err(err))
+		}
+	}()
 
 	linkCache, err := cache.NewCache(cfg.LinkCache)
 	if err != nil {
