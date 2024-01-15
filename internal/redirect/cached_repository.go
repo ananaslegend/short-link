@@ -3,7 +3,6 @@ package redirect
 import (
 	"context"
 	"fmt"
-	"log"
 )
 
 type Cache interface {
@@ -32,12 +31,8 @@ func (cr CachedRepository) SelectLink(ctx context.Context, alias string) (string
 
 	link, err := cr.cache.Get(ctx, alias)
 	if err == nil {
-		log.Printf("cache hit: %s", alias)
-
 		return link, nil
 	}
-
-	log.Printf("cache miss: %s", alias)
 
 	link, err = cr.repo.SelectLink(ctx, alias)
 	if err != nil {
@@ -47,8 +42,6 @@ func (cr CachedRepository) SelectLink(ctx context.Context, alias string) (string
 	if err = cr.cache.Set(ctx, alias, link); err != nil {
 		return link, fmt.Errorf("%s: %w, link: %s ; err: %w", op, ErrCantSetToCache, link, err)
 	}
-
-	log.Printf("cache set: %s", alias)
 
 	return link, nil
 }

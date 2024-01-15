@@ -13,4 +13,4 @@ link_cache:
 # shut_down_timeout is the time in seconds to wait for the server to shut down gracefully.
 shut_down_timeout: 60s
 metrics:
-  port: "8081"
+  addr: "127.0.0.1:8081"

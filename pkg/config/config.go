@@ -37,7 +37,7 @@ type AppConfig struct {
 }
 
 type Metrics struct {
-	Port string `json:"port,omitempty"`
+	Addr string `json:"addr,omitempty"`
 }
 
 type HttpServer struct {

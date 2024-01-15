@@ -51,10 +51,11 @@ func main() {
 	log.Debug("database prepared")
 
 	go func() {
-		if err := metrics.Listen(cfg.Metrics.Port); err != nil {
+		if err := metrics.Listen(cfg.Metrics.Addr); err != nil {
 			log.Error("cant listen metrics", logs.Err(err))
 		}
 	}()
+	log.Info("metrics server started")
 
 	linkCache, err := cache.NewCache(cfg.LinkCache)
 	if err != nil {

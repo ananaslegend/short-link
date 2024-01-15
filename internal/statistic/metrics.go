@@ -7,7 +7,7 @@ import (
 
 var (
 	statistic_rows_cap = promauto.NewGauge(prometheus.GaugeOpts{
-		Namespace: "short-link",
+		Namespace: "short_link",
 		Subsystem: "statistic",
 		Name:      "rows_capacity",
 		Help:      "how many rows contains in memory of statistic manager. If its value so big better to do flush more often.",

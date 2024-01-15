@@ -79,6 +79,9 @@ func (m *Manager) insert(ctx context.Context) error {
 		}
 		return fmt.Errorf("%v: %v", op, err)
 	}
+
+	ObserveRowsCap(len(m.rows))
+
 	return nil
 }
 

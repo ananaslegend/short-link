@@ -5,9 +5,9 @@ import (
 	"net/http"
 )
 
-func Listen(port string) error {
+func Listen(addr string) error {
 	mux := http.NewServeMux()
 	mux.Handle("/metrics", promhttp.Handler())
 
-	return http.ListenAndServe(port, mux)
+	return http.ListenAndServe(addr, mux)
 }
