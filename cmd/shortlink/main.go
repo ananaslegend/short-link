@@ -79,6 +79,8 @@ func main() {
 			switch r.Method {
 			case http.MethodGet:
 				redirectHandler.ServeHTTP(w, r)
+			default:
+				w.WriteHeader(http.StatusMethodNotAllowed)
 			}
 		}),
 	)
@@ -91,6 +93,8 @@ func main() {
 		switch r.Method {
 		case http.MethodPost:
 			saveHandler.ServeHTTP(w, r)
+		default:
+			w.WriteHeader(http.StatusMethodNotAllowed)
 		}
 	})
 
