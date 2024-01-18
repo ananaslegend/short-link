@@ -20,13 +20,14 @@ type Service struct {
 	repo InsertLinkRepo
 }
 
-func NewService(lp InsertLinkRepo) *Service {
+func New(log *slog.Logger, lp InsertLinkRepo) *Service {
 	return &Service{
+		log:  log,
 		repo: lp,
 	}
 }
 
-func (ls Service) AddLink(ctx context.Context, link, alias string) (string, error) {
+func (s Service) AddLink(ctx context.Context, link, alias string) (string, error) {
 	const op = "services.link.Add"
 
 	var autoAlias bool
@@ -39,7 +40,7 @@ func (ls Service) AddLink(ctx context.Context, link, alias string) (string, erro
 		link = "http://" + link
 	}
 
-	if err := ls.repo.InsertLink(ctx, link, alias); err != nil {
+	if err := s.repo.InsertLink(ctx, link, alias); err != nil {
 		if errors.Is(err, repository.ErrAliasAlreadyExists) {
 			if autoAlias {
 				return "", fmt.Errorf("%w, alias: %s", ErrAutoAliasAlreadyExists, alias)

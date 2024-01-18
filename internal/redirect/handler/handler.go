@@ -19,7 +19,7 @@ type Handler struct {
 	log         *slog.Logger
 }
 
-func NewHandler(srv GetLinkService, log *slog.Logger) *Handler {
+func New(srv GetLinkService, log *slog.Logger) *Handler {
 	return &Handler{
 		linkService: srv,
 		log:         log,

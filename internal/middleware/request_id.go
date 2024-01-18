@@ -6,15 +6,19 @@ import (
 	"net/http"
 )
 
-type RequestID struct{}
+type requestID struct{}
 
-// WithRequestId - middleware to provide unique uuid ver 2 and push it context.Context of http.Request.
-// Use constant middleware.RequestID to get it from context.
-func WithRequestId(next http.HandlerFunc) http.HandlerFunc {
+// WithRequestID - middleware to provide unique uuid ver 2 and push it context.Context of http.Request.
+// Use constant GetRequestID to get it from context.
+func WithRequestID(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		reqId := uuid.New().ID()
-		ctx := context.WithValue(r.Context(), RequestID{}, reqId)
+		ctx := context.WithValue(r.Context(), requestID{}, reqId)
 
 		next(w, r.WithContext(ctx))
 	}
+}
+
+func GetRequestID(ctx context.Context) string {
+	return ctx.Value(requestID{}).(string)
 }

@@ -24,22 +24,23 @@ type Service struct {
 	statManager StatManager
 }
 
-func NewService(lp SelectLinkRepo, stat StatManager) *Service {
+func New(log *slog.Logger, lp SelectLinkRepo, stat StatManager) *Service {
 	return &Service{
+		log:         log,
 		repo:        lp,
 		statManager: stat,
 	}
 }
 
-func (uc Service) GetLink(ctx context.Context, alias string) (string, error) {
+func (s Service) GetLink(ctx context.Context, alias string) (string, error) {
 	const op = "internal.redirect.service.Service.GetLink"
-	logger := uc.log.With(slog.String("op", op))
+	logger := s.log.With(slog.String("op", op))
 
 	var (
 		rowStat = statistic.NewRow()
 	)
 
-	link, err := uc.repo.SelectLink(ctx, alias)
+	link, err := s.repo.SelectLink(ctx, alias)
 	if err != nil {
 		if errors.Is(err, repository.ErrCantSetToCache) {
 			logger.Error("failed to set link to cache", logs.Err(err))
@@ -50,7 +51,7 @@ func (uc Service) GetLink(ctx context.Context, alias string) (string, error) {
 
 	rowStat.Link = link
 	rowStat.Redirect += 1
-	uc.statManager.AppendRow(rowStat)
+	s.statManager.AppendRow(rowStat)
 
 	return link, nil
 }

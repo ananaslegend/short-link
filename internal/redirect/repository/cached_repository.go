@@ -1,9 +1,8 @@
-package cache
+package repository
 
 import (
 	"context"
 	"fmt"
-	"github.com/ananaslegend/short-link/internal/redirect/repository"
 )
 
 type Cache interface {
@@ -20,7 +19,7 @@ type CachedRepository struct {
 	cache Cache
 }
 
-func NewCachedRepository(repo SelectRepository, cache Cache) *CachedRepository {
+func NewCached(repo SelectRepository, cache Cache) *CachedRepository {
 	return &CachedRepository{
 		repo:  repo,
 		cache: cache,
@@ -41,7 +40,7 @@ func (cr CachedRepository) SelectLink(ctx context.Context, alias string) (string
 	}
 
 	if err = cr.cache.Set(ctx, alias, link); err != nil {
-		return link, fmt.Errorf("%s: %w, link: %s ; err: %w", op, repository.ErrCantSetToCache, link, err)
+		return link, fmt.Errorf("%s: %w, link: %s ; err: %w", op, ErrCantSetToCache, link, err)
 	}
 
 	return link, nil

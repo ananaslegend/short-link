@@ -31,7 +31,7 @@ type Handler struct {
 	log     *slog.Logger
 }
 
-func NewHandler(srv LinkSetterService, log *slog.Logger) *Handler {
+func New(srv LinkSetterService, log *slog.Logger) *Handler {
 	return &Handler{
 		service: srv,
 		log:     log,

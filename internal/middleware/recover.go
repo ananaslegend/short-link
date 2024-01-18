@@ -12,6 +12,8 @@ func WithRecover(log *slog.Logger, next http.Handler) http.Handler {
 				if err := recover(); err != nil {
 					log.Error("app in panic!", slog.Any("request:", r))
 				}
+				w.WriteHeader(http.StatusInternalServerError)
+				return
 			}()
 			next.ServeHTTP(w, r)
 		},

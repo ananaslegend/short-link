@@ -7,11 +7,10 @@ import (
 	"github.com/ananaslegend/short-link/internal/metrics"
 	"github.com/ananaslegend/short-link/internal/middleware"
 	redirectHandler "github.com/ananaslegend/short-link/internal/redirect/handler"
-	redirectCache "github.com/ananaslegend/short-link/internal/redirect/repository/cache"
-	redirectSqlite "github.com/ananaslegend/short-link/internal/redirect/repository/sqlite"
+	redirectSqlite "github.com/ananaslegend/short-link/internal/redirect/repository"
 	redirectService "github.com/ananaslegend/short-link/internal/redirect/service"
 	saveHandler "github.com/ananaslegend/short-link/internal/save/handler"
-	saveSqlite "github.com/ananaslegend/short-link/internal/save/repository/sqlite"
+	saveSqlite "github.com/ananaslegend/short-link/internal/save/repository"
 	saveService "github.com/ananaslegend/short-link/internal/save/service"
 	"github.com/ananaslegend/short-link/internal/statistic"
 	"github.com/ananaslegend/short-link/pkg/closer"
@@ -78,12 +77,12 @@ func main() {
 	m := http.NewServeMux()
 
 	var (
-		repositoryRedirect       = redirectSqlite.NewRepository(db)
-		cachedRepositoryRedirect = redirectCache.NewCachedRepository(repositoryRedirect, linkCache)
-		serviceRedirect          = redirectService.NewService(cachedRepositoryRedirect, statisticManager)
-		handlerRedirect          = redirectHandler.NewHandler(serviceRedirect, log)
+		repositoryRedirect       = redirectSqlite.New(db)
+		cachedRepositoryRedirect = redirectSqlite.NewCached(repositoryRedirect, linkCache)
+		serviceRedirect          = redirectService.New(log, cachedRepositoryRedirect, statisticManager)
+		handlerRedirect          = redirectHandler.New(serviceRedirect, log)
 	)
-	m.HandleFunc("/", middleware.WithRequestId(
+	m.HandleFunc("/", middleware.WithRequestID(
 		func(w http.ResponseWriter, r *http.Request) {
 			switch r.Method {
 			case http.MethodGet:
@@ -95,9 +94,9 @@ func main() {
 	)
 
 	var (
-		repositorySave = saveSqlite.NewRepository(db)
-		serviceSave    = saveService.NewService(repositorySave)
-		handlerSave    = saveHandler.NewHandler(serviceSave, log)
+		repositorySave = saveSqlite.New(db)
+		serviceSave    = saveService.New(log, repositorySave)
+		handlerSave    = saveHandler.New(serviceSave, log)
 	)
 	m.HandleFunc("/link", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
