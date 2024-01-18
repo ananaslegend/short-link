@@ -1,4 +1,4 @@
-package save
+package service
 
 import (
 	"context"
@@ -66,7 +66,7 @@ func TestUseCase_AddLink(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ls := UseCase{
+			ls := Service{
 				repo: tt.fields.repo,
 			}
 			got, err := ls.AddLink(tt.args.ctx, tt.args.link, tt.args.alias)
@@ -134,7 +134,7 @@ func TestUseCase_AddLink_Empty_Aliases(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ls := UseCase{
+			ls := Service{
 				repo: tt.fields.repo,
 			}
 			_, err := ls.AddLink(tt.args.ctx, tt.args.link, tt.args.alias)

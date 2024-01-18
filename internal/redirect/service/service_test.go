@@ -1,8 +1,9 @@
-package redirect
+package service
 
 import (
 	"context"
 	"errors"
+	"github.com/ananaslegend/short-link/internal/redirect/repository"
 	"testing"
 )
 
@@ -15,9 +16,9 @@ func (mock SelectLinkRepoMock) SelectLink(ctx context.Context, alias string) (st
 	case "normal":
 		return "test.com", nil
 	case "not_found":
-		return "", ErrAliasNotFound
+		return "", repository.ErrAliasNotFound
 	case "cache_can_not_set":
-		return "test.com", ErrCantSetToCache
+		return "test.com", repository.ErrCantSetToCache
 	}
 
 	return "", nil
@@ -65,7 +66,7 @@ func TestUseCase_GetLink(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			uc := UseCase{
+			uc := Service{
 				repo: tt.fields.repo,
 			}
 			got, err := uc.GetLink(tt.args.ctx, tt.args.alias)
@@ -107,12 +108,12 @@ func TestUseCase_GetLink_Cache_Cases(t *testing.T) {
 			},
 			want:          "test.com",
 			wantErr:       true,
-			wantAsErrType: ErrCantSetToCache,
+			wantAsErrType: repository.ErrCantSetToCache,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			uc := UseCase{
+			uc := Service{
 				repo: tt.fields.repo,
 			}
 			got, err := uc.GetLink(tt.args.ctx, tt.args.alias)

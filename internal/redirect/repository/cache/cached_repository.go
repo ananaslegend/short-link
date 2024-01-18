@@ -1,8 +1,9 @@
-package redirect
+package cache
 
 import (
 	"context"
 	"fmt"
+	"github.com/ananaslegend/short-link/internal/redirect/repository"
 )
 
 type Cache interface {
@@ -27,7 +28,7 @@ func NewCachedRepository(repo SelectRepository, cache Cache) *CachedRepository {
 }
 
 func (cr CachedRepository) SelectLink(ctx context.Context, alias string) (string, error) {
-	const op = "storage.cached.SelectLink"
+	const op = "internal.redirect.repository.cache.CachedRepository.SelectLink"
 
 	link, err := cr.cache.Get(ctx, alias)
 	if err == nil {
@@ -40,7 +41,7 @@ func (cr CachedRepository) SelectLink(ctx context.Context, alias string) (string
 	}
 
 	if err = cr.cache.Set(ctx, alias, link); err != nil {
-		return link, fmt.Errorf("%s: %w, link: %s ; err: %w", op, ErrCantSetToCache, link, err)
+		return link, fmt.Errorf("%s: %w, link: %s ; err: %w", op, repository.ErrCantSetToCache, link, err)
 	}
 
 	return link, nil

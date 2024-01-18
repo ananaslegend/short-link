@@ -8,13 +8,14 @@
 - cashing for redirect use case ✅
 - graceful shutdown 
 - stat ✅
-- metrics
-- github actions
+- metrics ✅ maybe add more
 - click house
-- graphql api
+- github actions
+- auth
 - grpc api
 - додати якийсь прикол в path параметр типу (client/link) (iqos/go-kit)
 - додати юзерів і таблицю LinkUsers (m2m)
 - додати авторизацію на add 
 - delete handler
 - додати аутентифікацію на деліт
+- graphql api

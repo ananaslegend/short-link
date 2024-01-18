@@ -6,8 +6,13 @@ import (
 	"flag"
 	"github.com/ananaslegend/short-link/internal/metrics"
 	"github.com/ananaslegend/short-link/internal/middleware"
-	"github.com/ananaslegend/short-link/internal/redirect"
-	"github.com/ananaslegend/short-link/internal/save"
+	redirectHandler "github.com/ananaslegend/short-link/internal/redirect/handler"
+	redirectCache "github.com/ananaslegend/short-link/internal/redirect/repository/cache"
+	redirectSqlite "github.com/ananaslegend/short-link/internal/redirect/repository/sqlite"
+	redirectService "github.com/ananaslegend/short-link/internal/redirect/service"
+	saveHandler "github.com/ananaslegend/short-link/internal/save/handler"
+	saveSqlite "github.com/ananaslegend/short-link/internal/save/repository/sqlite"
+	saveService "github.com/ananaslegend/short-link/internal/save/service"
 	"github.com/ananaslegend/short-link/internal/statistic"
 	"github.com/ananaslegend/short-link/pkg/closer"
 	"github.com/ananaslegend/short-link/pkg/config"
@@ -63,37 +68,41 @@ func main() {
 		os.Exit(1)
 	}
 
-	statRepo := statistic.NewRepository(db)
-	statManager := statistic.NewManager(1*time.Minute, 1000, statRepo, log)
-	go statManager.Run()
-	gracefulCloser.Add(statManager.Close)
+	var (
+		repositoryStatistic = statistic.NewRepository(db)
+		statisticManager    = statistic.NewManager(1*time.Minute, 1000, repositoryStatistic, log)
+	)
+	go statisticManager.Run()
+	gracefulCloser.Add(statisticManager.Close)
 
 	m := http.NewServeMux()
 
-	redirectRepo := redirect.NewRepository(db)
-	cachedRedirectRepo := redirect.NewCachedRepository(redirectRepo, linkCache)
-	redirectUseCase := redirect.NewUseCase(cachedRedirectRepo, statManager)
-	redirectHandler := redirect.NewHandler(redirectUseCase, log)
-
+	var (
+		repositoryRedirect       = redirectSqlite.NewRepository(db)
+		cachedRepositoryRedirect = redirectCache.NewCachedRepository(repositoryRedirect, linkCache)
+		serviceRedirect          = redirectService.NewService(cachedRepositoryRedirect, statisticManager)
+		handlerRedirect          = redirectHandler.NewHandler(serviceRedirect, log)
+	)
 	m.HandleFunc("/", middleware.WithRequestId(
 		func(w http.ResponseWriter, r *http.Request) {
 			switch r.Method {
 			case http.MethodGet:
-				redirectHandler.ServeHTTP(w, r)
+				handlerRedirect.ServeHTTP(w, r)
 			default:
 				w.WriteHeader(http.StatusMethodNotAllowed)
 			}
 		}),
 	)
 
-	saveRepo := save.NewRepository(db)
-	saveUseCase := save.NewUseCase(saveRepo)
-	saveHandler := save.NewHandler(saveUseCase, log)
-
+	var (
+		repositorySave = saveSqlite.NewRepository(db)
+		serviceSave    = saveService.NewService(repositorySave)
+		handlerSave    = saveHandler.NewHandler(serviceSave, log)
+	)
 	m.HandleFunc("/link", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodPost:
-			saveHandler.ServeHTTP(w, r)
+			handlerSave.ServeHTTP(w, r)
 		default:
 			w.WriteHeader(http.StatusMethodNotAllowed)
 		}

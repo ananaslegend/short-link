@@ -1,4 +1,4 @@
-package save
+package service
 
 import "errors"
 

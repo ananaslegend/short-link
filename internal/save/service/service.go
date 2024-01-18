@@ -1,11 +1,13 @@
-package save
+package service
 
 import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/ananaslegend/short-link/internal/save/repository"
 	"github.com/ananaslegend/short-link/pkg/shortner"
 	"github.com/google/uuid"
+	"log/slog"
 	"strings"
 )
 
@@ -13,17 +15,18 @@ type InsertLinkRepo interface {
 	InsertLink(ctx context.Context, link, alias string) error
 }
 
-type UseCase struct {
+type Service struct {
+	log  *slog.Logger
 	repo InsertLinkRepo
 }
 
-func NewUseCase(lp InsertLinkRepo) *UseCase {
-	return &UseCase{
+func NewService(lp InsertLinkRepo) *Service {
+	return &Service{
 		repo: lp,
 	}
 }
 
-func (ls UseCase) AddLink(ctx context.Context, link, alias string) (string, error) {
+func (ls Service) AddLink(ctx context.Context, link, alias string) (string, error) {
 	const op = "services.link.Add"
 
 	var autoAlias bool
@@ -37,14 +40,14 @@ func (ls UseCase) AddLink(ctx context.Context, link, alias string) (string, erro
 	}
 
 	if err := ls.repo.InsertLink(ctx, link, alias); err != nil {
-		if errors.Is(err, ErrAliasAlreadyExists) {
+		if errors.Is(err, repository.ErrAliasAlreadyExists) {
 			if autoAlias {
-				return "", fmt.Errorf("%s: %w, alias: %s", op, ErrAutoAliasAlreadyExists, alias)
+				return "", fmt.Errorf("%w, alias: %s", ErrAutoAliasAlreadyExists, alias)
 			}
 
-			err = fmt.Errorf("%s: %w", op, err)
+			return "", ErrAliasAlreadyExists
 		}
-		return "", err
+		return "", fmt.Errorf("%s: %w", op, err)
 	}
 
 	return alias, nil
