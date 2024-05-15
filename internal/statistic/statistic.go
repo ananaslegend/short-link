@@ -6,7 +6,7 @@ import (
 
 type Dimension struct {
 	Timestamp int64
-	Link      string // TODO: ID instead
+	Link      string // TODO: Order instead
 }
 
 func NewDimension() Dimension {

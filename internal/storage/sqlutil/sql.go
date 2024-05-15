@@ -1,16 +1,16 @@
-package sql
+package sqlutil
 
 import (
 	"database/sql"
 	"fmt"
-	"github.com/ananaslegend/short-link/pkg/logs"
+	"github.com/ananaslegend/go-logs/v2"
 	"log/slog"
 )
 
 func Close(db *sql.DB, log *slog.Logger) {
 	err := db.Close()
 	if err != nil {
-		log.Error("cant close database", logs.Err(err))
+		log.Error("cant close database", logs.ErrorMsg(err))
 		return
 	}
 	log.Debug("database closed")

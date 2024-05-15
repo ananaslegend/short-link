@@ -1,4 +1,4 @@
-package sql
+package sqlutil
 
 import (
 	_ "github.com/mattn/go-sqlite3"
@@ -7,8 +7,8 @@ import (
 	"fmt"
 )
 
-func NewSqliteStorage(dbPath string) (*sql.DB, error) {
-	const op = "storage.sqlite.NewSqliteStorage"
+func NewSQLiteStorage(dbPath string) (*sql.DB, error) {
+	const op = "storage.sqlite.NewSQLiteStorage"
 
 	db, err := sql.Open("sqlite3", dbPath)
 	if err != nil {

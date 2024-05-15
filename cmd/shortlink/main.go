@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"flag"
+	"github.com/ananaslegend/go-logs/v2"
+	"github.com/ananaslegend/short-link/internal/config"
 	"github.com/ananaslegend/short-link/internal/metrics"
 	"github.com/ananaslegend/short-link/internal/middleware"
 	redirectHandler "github.com/ananaslegend/short-link/internal/redirect/handler"
@@ -13,11 +15,9 @@ import (
 	saveSqlite "github.com/ananaslegend/short-link/internal/save/repository"
 	saveService "github.com/ananaslegend/short-link/internal/save/service"
 	"github.com/ananaslegend/short-link/internal/statistic"
+	"github.com/ananaslegend/short-link/internal/storage/cache"
+	sql2 "github.com/ananaslegend/short-link/internal/storage/sqlutil"
 	"github.com/ananaslegend/short-link/pkg/closer"
-	"github.com/ananaslegend/short-link/pkg/config"
-	"github.com/ananaslegend/short-link/pkg/logs"
-	"github.com/ananaslegend/short-link/pkg/storage/cache"
-	"github.com/ananaslegend/short-link/pkg/storage/sql"
 	"log/slog"
 	"net/http"
 	"os/signal"
@@ -32,44 +32,44 @@ func main() {
 	flag.Parse()
 	cfg := config.MustLoadYaml(*confPath)
 
-	log := logs.SetUpLogger(cfg)
-	log.Info("short-link app started", slog.String("env", string(cfg.Env)))
+	logger := SetUpLogger(cfg)
+	logger.Info("short-link app started", slog.String("env", string(cfg.Env)))
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 	gracefulCloser := closer.New()
 
-	db, err := sql.NewSqliteStorage(cfg.DbConn)
+	db, err := sql2.NewSQLiteStorage(cfg.DbConn)
 	if err != nil {
-		log.Error("cant connect to database", logs.Err(err))
+		logger.Error("cant connect to database", logs.ErrorMsg(err))
 		os.Exit(1)
 	}
-	log.Debug("database connected")
-	defer sql.Close(db, log)
+	logger.Debug("database connected")
+	defer sql2.Close(db, logger)
 
-	err = sql.Prepare(db)
+	err = sql2.Prepare(db)
 	if err != nil {
-		log.Error("cant prepare database", logs.Err(err))
+		logger.Error("cant prepare database", logs.ErrorMsg(err))
 		os.Exit(1)
 	}
-	log.Debug("database prepared")
+	logger.Debug("database prepared")
 
 	go func() {
 		if err := metrics.Listen(cfg.Metrics.Addr); err != nil {
-			log.Error("cant listen metrics", logs.Err(err))
+			logger.Error("cant listen metrics", logs.ErrorMsg(err))
 		}
 	}()
-	log.Info("metrics server started")
+	logger.Info("metrics server started")
 
 	linkCache, err := cache.NewCache(cfg.LinkCache)
 	if err != nil {
-		log.Error("cant create link_cache", logs.Err(err))
+		logger.Error("cant create link_cache", logs.ErrorMsg(err))
 		os.Exit(1)
 	}
 
 	var (
 		repositoryStatistic = statistic.NewRepository(db)
-		statisticManager    = statistic.NewManager(1*time.Minute, 1000, repositoryStatistic, log)
+		statisticManager    = statistic.NewManager(1*time.Minute, 1000, repositoryStatistic, logger)
 	)
 	go statisticManager.Run()
 	gracefulCloser.Add(statisticManager.Close)
@@ -79,8 +79,8 @@ func main() {
 	var (
 		repositoryRedirect       = redirectSqlite.New(db)
 		cachedRepositoryRedirect = redirectSqlite.NewCached(repositoryRedirect, linkCache)
-		serviceRedirect          = redirectService.New(log, cachedRepositoryRedirect, statisticManager)
-		handlerRedirect          = redirectHandler.New(serviceRedirect, log)
+		serviceRedirect          = redirectService.New(logger, cachedRepositoryRedirect, statisticManager)
+		handlerRedirect          = redirectHandler.New(serviceRedirect, logger)
 	)
 	m.HandleFunc("/", middleware.WithRequestID(
 		func(w http.ResponseWriter, r *http.Request) {
@@ -95,8 +95,8 @@ func main() {
 
 	var (
 		repositorySave = saveSqlite.New(db)
-		serviceSave    = saveService.New(log, repositorySave)
-		handlerSave    = saveHandler.New(serviceSave, log)
+		serviceSave    = saveService.New(logger, repositorySave)
+		handlerSave    = saveHandler.New(serviceSave, logger)
 	)
 	m.HandleFunc("/link", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
@@ -109,26 +109,38 @@ func main() {
 
 	s := http.Server{
 		Addr:    cfg.HttpServer.Port,
-		Handler: middleware.WithRecover(log, m),
+		Handler: middleware.WithRecover(logger, m),
 	}
 
 	gracefulCloser.Add(s.Shutdown)
 
 	go func() {
 		if err = s.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
-			log.Error("HTTP server", logs.Err(err))
+			logger.Error("HTTP server", logs.ErrorMsg(err))
 			os.Exit(1)
 		}
 	}()
 
 	<-ctx.Done()
 
-	log.Info("shutting down server gracefully")
+	logger.Info("shutting down server gracefully")
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), cfg.ShutDownTimeout)
 	defer cancel()
 
 	if err = gracefulCloser.Close(shutdownCtx); err != nil {
-		log.Error("graceful shutdown with errors", logs.Err(err))
+		logger.Error("graceful shutdown with errors", logs.ErrorMsg(err))
 	}
-	log.Info("graceful shutdown finished")
+	logger.Info("graceful shutdown finished")
+}
+
+func SetUpLogger(cfg config.AppConfig) *slog.Logger { // todo move
+	var logger *slog.Logger
+
+	switch cfg.Env {
+	case config.Local:
+		logger = slog.New(
+			slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
+	}
+
+	return logger
 }

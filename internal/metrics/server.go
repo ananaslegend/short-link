@@ -5,9 +5,14 @@ import (
 	"net/http"
 )
 
-func Listen(addr string) error {
+func SetUpServer(addr string) *http.Server {
 	mux := http.NewServeMux()
 	mux.Handle("/metrics", promhttp.Handler())
 
-	return http.ListenAndServe(addr, mux)
+	s := &http.Server{
+		Addr:    addr,
+		Handler: mux,
+	}
+
+	return s
 }

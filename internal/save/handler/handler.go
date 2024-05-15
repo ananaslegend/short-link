@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/ananaslegend/go-logs/v2"
 	"github.com/ananaslegend/short-link/internal/save/service"
-	"github.com/ananaslegend/short-link/pkg/logs"
 	"io"
 	"log/slog"
 	"net/http"
@@ -47,13 +47,13 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	)
 	b, err := io.ReadAll(r.Body)
 	if err != nil {
-		logger.Error("cant read body", logs.Err(err))
+		logger.Error("cant read body", logs.ErrorMsg(err))
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	if err = json.Unmarshal(b, &req); err != nil { // TODO Add Validation
-		logger.Info(fmt.Sprintf("cant unmarshal request body. body: %s", b), logs.Err(err))
+		logger.Info(fmt.Sprintf("cant unmarshal request body. body: %s", b), logs.ErrorMsg(err))
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -67,12 +67,12 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			resp.Error = "alias already exists"
 			err = json.NewEncoder(w).Encode(resp)
 			if err != nil {
-				logger.Error("cant encode json", logs.Err(err))
+				logger.Error("cant encode json", logs.ErrorMsg(err))
 				w.WriteHeader(http.StatusInternalServerError)
 			}
 			return
 		default:
-			logger.Error("failed to add link", logs.Err(err))
+			logger.Error("failed to add link", logs.ErrorMsg(err))
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -82,7 +82,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	resp.Alias = addedAlias
 	err = json.NewEncoder(w).Encode(resp)
 	if err != nil {
-		logger.Error("cant encode json", logs.Err(err))
+		logger.Error("cant encode json", logs.ErrorMsg(err))
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 }

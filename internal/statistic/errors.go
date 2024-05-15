@@ -3,6 +3,6 @@ package statistic
 import "errors"
 
 var (
-	ErrNoSatatToInsert = errors.New("no stat to insert")
-	ErrCantInsertStat  = errors.New("cant insert stat rows to db")
+	ErrNoStatToInsert = errors.New("no stat to insert")
+	ErrStatInserting  = errors.New("cant insert stat rows to db")
 )

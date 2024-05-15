@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/ananaslegend/short-link/pkg/logs"
+	"github.com/ananaslegend/go-logs/v2"
 	"log/slog"
 	"sync"
 	"time"
@@ -70,7 +70,7 @@ func (m *Manager) insert(ctx context.Context) error {
 	const op = "statistic.manager.insert"
 	rowsToInsert := m.withdrawRows()
 	if len(rowsToInsert) == 0 {
-		return ErrNoSatatToInsert
+		return ErrNoStatToInsert
 	}
 
 	if err := m.writer.InsertRows(ctx, rowsToInsert); err != nil {
@@ -101,10 +101,10 @@ func (m *Manager) loop() {
 		case <-time.After(m.flushTime):
 			if err := m.insert(context.Background()); err != nil {
 				switch {
-				case errors.Is(err, ErrNoSatatToInsert):
-					m.log.Warn(ErrNoSatatToInsert.Error())
+				case errors.Is(err, ErrNoStatToInsert):
+					m.log.Warn(ErrNoStatToInsert.Error())
 				default:
-					m.log.Error("cant insert stat rows in db", logs.Err(err))
+					m.log.Error("cant insert stat rows in db", logs.ErrorMsg(err))
 				}
 			}
 		case ctx := <-m.shutdownCh:

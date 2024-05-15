@@ -3,8 +3,7 @@ package cache
 import (
 	"context"
 	"github.com/allegro/bigcache"
-	"github.com/ananaslegend/short-link/pkg/config"
-	"time"
+	"github.com/ananaslegend/short-link/internal/config"
 )
 
 type Cacher interface {
@@ -26,7 +25,7 @@ func NewCache(cfg config.Cache) (*Cache, error) {
 
 	switch cfg.CacheType {
 	case config.BigCache:
-		if cache.Cacher, err = NewBigCache(bigcache.DefaultConfig(cfg.TTL * time.Second)); err != nil {
+		if cache.Cacher, err = NewBigCache(bigcache.DefaultConfig(cfg.TTL)); err != nil {
 			return nil, err
 		}
 	default:

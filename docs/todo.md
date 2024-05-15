@@ -5,10 +5,11 @@
 - передивитись логи ✅
 - linter ✅
 - tests ▶️
-- cashing for redirect use case ✅
+- cashing for redirect use case 
 - graceful shutdown 
 - stat ✅
 - metrics ✅ maybe add more
+- migrations
 - click house
 - github actions
 - auth
@@ -19,3 +20,4 @@
 - delete handler
 - додати аутентифікацію на деліт
 - graphql api
+- додати країну в статистику 
