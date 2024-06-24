@@ -3,11 +3,10 @@ package service
 import (
 	"context"
 	"errors"
-	"fmt"
 	"github.com/ananaslegend/short-link/internal/save/repository"
+	"github.com/ananaslegend/short-link/pkg/clog"
 	"github.com/ananaslegend/short-link/pkg/shortner"
 	"github.com/google/uuid"
-	"log/slog"
 	"strings"
 )
 
@@ -16,39 +15,37 @@ type InsertLinkRepo interface {
 }
 
 type Service struct {
-	log  *slog.Logger
 	repo InsertLinkRepo
 }
 
-func New(log *slog.Logger, lp InsertLinkRepo) *Service {
+func New(lp InsertLinkRepo) *Service {
 	return &Service{
-		log:  log,
 		repo: lp,
 	}
 }
 
 func (s Service) AddLink(ctx context.Context, link, alias string) (string, error) {
-	const op = "services.link.Add"
-
-	var autoAlias bool
 	if len(alias) == 0 {
 		alias = shortner.MakeShorter(uuid.New().ID())
-		autoAlias = true
+		ctx = clog.WithBool(ctx, "auto_alias", true)
 	}
+
+	ctx = clog.WithString(ctx, "alias", alias)
 
 	if !strings.Contains(link, "http") {
 		link = "http://" + link
 	}
 
-	if err := s.repo.InsertLink(ctx, link, alias); err != nil {
-		if errors.Is(err, repository.ErrAliasAlreadyExists) {
-			if autoAlias {
-				return "", fmt.Errorf("%w, alias: %s", ErrAutoAliasAlreadyExists, alias)
-			}
+	ctx = clog.WithString(ctx, "link", link)
 
+	if err := s.repo.InsertLink(ctx, link, alias); err != nil {
+		clog.Ctx(ctx).Error("insert link", clog.ErrorMsg(err))
+
+		if errors.Is(err, repository.ErrAliasAlreadyExists) {
 			return "", ErrAliasAlreadyExists
 		}
-		return "", fmt.Errorf("%s: %w", op, err)
+
+		return "", err
 	}
 
 	return alias, nil

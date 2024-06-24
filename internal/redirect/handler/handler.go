@@ -3,9 +3,8 @@ package handler
 import (
 	"context"
 	"errors"
-	"github.com/ananaslegend/go-logs/v2"
 	"github.com/ananaslegend/short-link/internal/redirect/service"
-	"log/slog"
+	"github.com/ananaslegend/short-link/pkg/clog"
 	"net/http"
 )
 
@@ -19,25 +18,21 @@ type GetLinkService interface {
 
 type Handler struct {
 	linkService GetLinkService
-	logger      *slog.Logger
 }
 
-func New(srv GetLinkService, log *slog.Logger) *Handler {
+func New(srv GetLinkService) *Handler {
 	return &Handler{
 		linkService: srv,
-		logger:      log,
 	}
 }
 
 func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	ctx := logs.WithMetric(r.Context(), "handler", "redirect")
-
-	alias, err := h.fetchAlias(ctx, r)
+	alias, err := h.fetchAlias(r.Context(), r)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	ctx = logs.WithMetric(ctx, "alias", alias)
+	ctx := clog.WithString(r.Context(), "alias", alias)
 
 	link, err := h.linkService.GetLink(ctx, alias)
 	if err != nil {
@@ -52,7 +47,7 @@ func (h Handler) fetchAlias(ctx context.Context, r *http.Request) (string, error
 	alias := r.PathValue("alias")
 
 	if err := validateAlias(alias); err != nil {
-		h.logger.DebugContext(ctx, "error getting alias", logs.ErrorMsg(err))
+		clog.Ctx(ctx).With("alias", alias).Error("error getting alias", clog.ErrorMsg(err))
 		return "", err
 	}
 
@@ -72,7 +67,7 @@ func (h Handler) renderError(ctx context.Context, w http.ResponseWriter, err err
 	case errors.Is(err, service.ErrAliasNotFound):
 		w.WriteHeader(http.StatusNotFound)
 	default:
-		h.logger.ErrorContext(logs.ErrorCtx(ctx, err), "failed to get link", logs.ErrorMsg(err))
+		clog.Ctx(ctx).Error("failed to get link", clog.ErrorMsg(err))
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 }

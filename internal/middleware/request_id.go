@@ -2,35 +2,48 @@ package middleware
 
 import (
 	"context"
-	"errors"
-	"github.com/ananaslegend/go-logs/v2"
+	"github.com/ananaslegend/short-link/pkg/clog"
 	"github.com/google/uuid"
 	"net/http"
 )
 
-type requestID struct{}
+type reqIDKey struct{}
 
 var (
-	ErrNoRequestID = errors.New("no request id in context")
+	RequestIDHeaderKey = "X-Request-ID"
+	RequestIDLogKey    = "request_id"
 )
 
-// WithRequestID - middleware to provide unique uuid ver 2 and push it context.Context of http.Request.
-func WithRequestID(next http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		reqID := uuid.New()
-		ctx := context.WithValue(r.Context(), requestID{}, reqID)
+// WithRequestID middleware try to get request ID from request with [RequestIDHeaderKey] or generates new one
+// and sets it to response header with [RequestIDHeaderKey], log message with [RequestIDLogKey] and to context.
+func WithRequestID(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		reqID := r.Header.Get(RequestIDHeaderKey)
 
-		ctx = logs.WithMetric(ctx, "request_id", reqID)
+		if reqID == "" {
+			reqID = uuid.New().String()
+		}
 
-		next(w, r.WithContext(ctx))
-	}
+		ctx := clog.WithString(r.Context(), RequestIDLogKey, reqID)
+
+		ctx = context.WithValue(ctx, reqIDKey{}, reqID)
+
+		SetRequestIDHeader(ctx, w.Header())
+
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
 }
 
-func GetRequestID(ctx context.Context) (uuid.UUID, error) {
-	reqID, ok := ctx.Value(requestID{}).(uuid.UUID)
-	if !ok {
-		return uuid.UUID{}, ErrNoRequestID
+func RequestID(ctx context.Context) string {
+	reqID, _ := ctx.Value(reqIDKey{}).(string)
+
+	if reqID == "" {
+		clog.Ctx(ctx).Error("request_id not found")
 	}
 
-	return reqID, nil
+	return reqID
+}
+
+func SetRequestIDHeader(ctx context.Context, headers http.Header) {
+	headers.Set(RequestIDHeaderKey, RequestID(ctx))
 }

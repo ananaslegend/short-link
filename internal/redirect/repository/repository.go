@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"database/sql"
-	"fmt"
 )
 
 type Repository struct {
@@ -15,20 +14,18 @@ func New(db *sql.DB) *Repository {
 }
 
 func (r Repository) SelectLink(ctx context.Context, alias string) (string, error) {
-	const op = "storage.sql.SelectLink"
-
 	stmt, err := r.db.Prepare(`
 	select link 
 	from link
-	where alias == ?
+	where alias = $1
 `)
 	if err != nil {
-		return "", fmt.Errorf("%s: %w", op, err)
+		return "", err
 	}
 
 	var link string
 	if err = stmt.QueryRowContext(ctx, alias).Scan(&link); err != nil {
-		return "", fmt.Errorf("%s: %w", op, err)
+		return "", err
 	}
 
 	return link, nil

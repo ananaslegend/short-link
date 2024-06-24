@@ -4,9 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
-	"github.com/ananaslegend/go-logs/v2"
 	"github.com/ananaslegend/short-link/internal/save/service"
+	"github.com/ananaslegend/short-link/pkg/clog"
 	"io"
 	"log/slog"
 	"net/http"
@@ -28,61 +27,64 @@ type Response struct {
 
 type Handler struct {
 	service LinkSetterService
-	log     *slog.Logger
 }
 
 func New(srv LinkSetterService, log *slog.Logger) *Handler {
 	return &Handler{
 		service: srv,
-		log:     log,
 	}
 }
 
 func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	const op = "internal.save.handler.ServeHTTP"
-	var (
-		logger = h.log.With(slog.String("op", op))
-		req    Request
-		resp   Response
-	)
 	b, err := io.ReadAll(r.Body)
 	if err != nil {
-		logger.Error("cant read body", logs.ErrorMsg(err))
+		clog.Ctx(r.Context()).Error("cant read body", clog.ErrorMsg(err))
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
+	var req Request
 	if err = json.Unmarshal(b, &req); err != nil { // TODO Add Validation
-		logger.Info(fmt.Sprintf("cant unmarshal request body. body: %s", b), logs.ErrorMsg(err))
+		clog.Ctx(r.Context()).With("body", b).Error("cant unmarshal request body", clog.ErrorMsg(err))
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	addedAlias, err := h.service.AddLink(r.Context(), req.Link, req.Alias)
 	if err != nil {
-		switch {
-		case errors.Is(err, service.ErrAliasAlreadyExists):
-			w.WriteHeader(http.StatusConflict)
-			w.Header().Set("Content-Type", "application/json")
-			resp.Error = "alias already exists"
-			err = json.NewEncoder(w).Encode(resp)
-			if err != nil {
-				logger.Error("cant encode json", logs.ErrorMsg(err))
-				w.WriteHeader(http.StatusInternalServerError)
-			}
-			return
-		default:
-			logger.Error("failed to add link", logs.ErrorMsg(err))
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
+		h.renderError(r.Context(), err, w)
+		return
 	}
 
-	w.WriteHeader(http.StatusCreated)
+	h.renderResponse(r.Context(), w, addedAlias)
+}
+
+func (h Handler) renderResponse(ctx context.Context, w http.ResponseWriter, addedAlias string) {
+	var resp Response
 	resp.Alias = addedAlias
-	err = json.NewEncoder(w).Encode(resp)
+	w.WriteHeader(http.StatusCreated)
+	err := json.NewEncoder(w).Encode(resp)
 	if err != nil {
-		logger.Error("cant encode json", logs.ErrorMsg(err))
+		clog.Ctx(ctx).Error("cant encode json", clog.ErrorMsg(err))
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+}
+
+func (h Handler) renderError(ctx context.Context, err error, w http.ResponseWriter) {
+	var resp Response
+
+	switch {
+	case errors.Is(err, service.ErrAliasAlreadyExists):
+		w.WriteHeader(http.StatusConflict)
+		w.Header().Set("Content-Type", "application/json")
+		resp.Error = "alias already exists"
+		err = json.NewEncoder(w).Encode(resp)
+		if err != nil {
+			clog.Ctx(ctx).Error("cant encode json", clog.ErrorMsg(err))
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+	default:
+		clog.Ctx(ctx).Error("failed to add link", clog.ErrorMsg(err))
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 }

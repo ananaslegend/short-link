@@ -1,20 +1,9 @@
-package sqlutil
+package storage
 
 import (
 	"database/sql"
 	"fmt"
-	"github.com/ananaslegend/go-logs/v2"
-	"log/slog"
 )
-
-func Close(db *sql.DB, log *slog.Logger) {
-	err := db.Close()
-	if err != nil {
-		log.Error("cant close database", logs.ErrorMsg(err))
-		return
-	}
-	log.Debug("database closed")
-}
 
 func Prepare(db *sql.DB) error {
 	const op = "storage.sql.Prepare"

@@ -59,8 +59,6 @@ func MustLoadYaml(confPath string) AppConfig {
 	cfg := AppConfig{
 		HttpServer: HttpServer{},
 	}
-	dir, _ := os.Getwd()
-	log.Printf("dir: %s", dir)
 	if data, err := os.ReadFile(confPath); err != nil {
 		log.Fatalf("failed to read config file: %s", err)
 	} else {

@@ -102,7 +102,7 @@ func (m *Manager) loop() {
 			if err := m.insert(context.Background()); err != nil {
 				switch {
 				case errors.Is(err, ErrNoStatToInsert):
-					m.log.Warn(ErrNoStatToInsert.Error())
+					m.log.Info(ErrNoStatToInsert.Error())
 				default:
 					m.log.Error("cant insert stat rows in db", logs.ErrorMsg(err))
 				}
