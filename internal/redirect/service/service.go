@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"github.com/ananaslegend/short-link/internal/statistic"
-	"log/slog"
 )
 
 type SelectLinkRepo interface {
@@ -15,14 +14,12 @@ type StatManager interface {
 }
 
 type Service struct {
-	log         *slog.Logger
 	repo        SelectLinkRepo
 	statManager StatManager
 }
 
-func New(log *slog.Logger, lp SelectLinkRepo, stat StatManager) *Service {
+func New(lp SelectLinkRepo, stat StatManager) *Service {
 	return &Service{
-		log:         log,
 		repo:        lp,
 		statManager: stat,
 	}
@@ -34,14 +31,15 @@ func (s Service) GetLink(ctx context.Context, alias string) (string, error) {
 		return "", err
 	}
 
-	s.addStatistic(ctx, link)
+	addStatistic(ctx, link, alias)
 
 	return link, nil
 }
 
-func (s Service) addStatistic(ctx context.Context, link string) {
-	rowStat := statistic.NewRow()
-	rowStat.Link = link
-	rowStat.Redirect += 1
-	s.statManager.AppendRow(rowStat)
+func addStatistic(ctx context.Context, link string, alias string) {
+	if rowStat, ok := statistic.GetFromCtx(ctx); ok {
+		rowStat.Link = link
+		rowStat.Alias = alias
+		rowStat.Redirect += 1
+	}
 }

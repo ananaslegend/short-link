@@ -5,19 +5,17 @@
 - передивитись логи ✅
 - linter ✅
 - tests ▶️
-- cashing for redirect use case 
+- cashing for redirect ✅
 - graceful shutdown 
 - stat ✅
 - metrics ✅ maybe add more
-- migrations
+- migrations ✅
+- statistic в окремий сервіс
 - click house
-- github actions
+- додати країну в статистику
 - auth
-- grpc api
-- додати якийсь прикол в path параметр типу (client/link) (iqos/go-kit)
+- додати якийсь прикол в path параметр типу (client/link) (iqos/go-kit) | хз чи треба
 - додати юзерів і таблицю LinkUsers (m2m)
 - додати авторизацію на add 
 - delete handler
 - додати аутентифікацію на деліт
-- graphql api
-- додати країну в статистику 

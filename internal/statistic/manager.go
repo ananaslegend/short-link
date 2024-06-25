@@ -106,6 +106,8 @@ func (m *Manager) loop() {
 				default:
 					m.log.Error("cant insert stat rows in db", logs.ErrorMsg(err))
 				}
+			} else {
+				m.log.Debug("statistic flushed")
 			}
 		case ctx := <-m.shutdownCh:
 			m.shutdownErrCh <- m.insert(ctx)

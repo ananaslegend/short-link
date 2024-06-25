@@ -122,6 +122,8 @@ func (a *App) setUpHTTPServer() {
 	router.Use(middleware.WithRequestID)
 	router.Use(middleware.WithRecover)
 	router.Use(middleware.WithLoggingRequest)
+	router.Use(statistic.WithStatisticRow)
+	router.Use(statistic.WithSendingStatistic(a.statManager))
 
 	router.HandleFunc("GET /{alias}", a.redirectHandler())
 	router.HandleFunc("POST /link", a.saveLinkHandler())
@@ -144,7 +146,7 @@ func (a *App) redirectHandler() http.HandlerFunc {
 
 	cachedRepositoryRedirect := redirectRepo.NewRedisCache(repositoryRedirect, a.redisClient)
 
-	serviceRedirect := redirectService.New(a.logger, cachedRepositoryRedirect, a.statManager)
+	serviceRedirect := redirectService.New(cachedRepositoryRedirect, a.statManager)
 
 	return redirectHandler.New(serviceRedirect).ServeHTTP
 }
@@ -196,5 +198,5 @@ func (a *App) setUpRedis() {
 
 func (a *App) setUpStatisticManager() {
 	repositoryStatistic := statistic.NewRepository(a.db)
-	a.statManager = statistic.NewManager(1*time.Minute, 1000, repositoryStatistic, a.logger)
+	a.statManager = statistic.NewManager(1*time.Second, 1000, repositoryStatistic, a.logger)
 }

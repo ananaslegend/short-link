@@ -19,7 +19,7 @@ func (r Repository) InsertRows(ctx context.Context, rows Rows) error {
 	const op = "internal.statistic.repository.InsertRows"
 	stmt, err := r.db.Prepare(
 		`insert into statistic (redirect_time_stamp, link, redirect)
-				values (?,?,?)`,
+				values ($1,$2,$3)`,
 	)
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
