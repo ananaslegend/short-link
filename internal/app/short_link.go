@@ -7,7 +7,6 @@ import (
 	"github.com/ananaslegend/go-logs/v2"
 	"github.com/ananaslegend/short-link/internal/config"
 	"github.com/ananaslegend/short-link/internal/metrics"
-	"github.com/ananaslegend/short-link/internal/middleware"
 	redirectHandler "github.com/ananaslegend/short-link/internal/redirect/handler"
 	redirectRepo "github.com/ananaslegend/short-link/internal/redirect/repository"
 	redirectService "github.com/ananaslegend/short-link/internal/redirect/service"
@@ -16,7 +15,6 @@ import (
 	saveService "github.com/ananaslegend/short-link/internal/save/service"
 	"github.com/ananaslegend/short-link/internal/statistic"
 	"github.com/ananaslegend/short-link/internal/storage"
-	"github.com/ananaslegend/short-link/pkg/clog"
 	"github.com/go-pkgz/routegroup"
 	"github.com/go-redis/redis/v8"
 	"golang.org/x/sync/errgroup"
@@ -30,6 +28,7 @@ type StatManager interface {
 	AppendRow(row *statistic.Row)
 	Close(ctx context.Context) error
 	Run()
+	FlushTime() time.Duration
 }
 
 type App struct {
@@ -118,15 +117,7 @@ func (a *App) Close() {
 func (a *App) setUpHTTPServer() {
 	router := routegroup.New(http.NewServeMux())
 
-	router.Use(clog.WithCtxLogger(a.logger))
-	router.Use(middleware.WithRequestID)
-	router.Use(middleware.WithRecover)
-	router.Use(middleware.WithLoggingRequest)
-	router.Use(statistic.WithStatisticRow)
-	router.Use(statistic.WithSendingStatistic(a.statManager))
-
-	router.HandleFunc("GET /{alias}", a.redirectHandler())
-	router.HandleFunc("POST /link", a.saveLinkHandler())
+	a.setUpRouter(router)
 
 	a.httpServer = &http.Server{
 		Addr:    a.config.HttpServer.Port,
@@ -197,6 +188,12 @@ func (a *App) setUpRedis() {
 }
 
 func (a *App) setUpStatisticManager() {
-	repositoryStatistic := statistic.NewRepository(a.db)
+	ch, err := storage.NewClickHouse(a.config.ClickHouse.Host, a.config.ClickHouse.Port, a.config.ClickHouse.Db, a.config.ClickHouse.Pass, a.config.ClickHouse.User)
+	if err != nil {
+		a.logger.Error("cant connect to clickhouse", logs.ErrorMsg(err))
+		os.Exit(1)
+	}
+
+	repositoryStatistic := statistic.NewNativeClickHouseRepository(ch)
 	a.statManager = statistic.NewManager(1*time.Second, 1000, repositoryStatistic, a.logger)
 }

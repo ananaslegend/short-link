@@ -11,9 +11,9 @@ type Dimension struct {
 	Alias     string
 }
 
-func NewDimension() Dimension {
+func NewDimension(flushTime time.Duration) Dimension {
 	timestamp := time.Now().Unix()
-	timestamp -= timestamp % 60
+	timestamp -= int64(flushTime.Seconds())
 
 	return Dimension{
 		Timestamp: timestamp,
@@ -29,9 +29,9 @@ type Row struct {
 	Metric
 }
 
-func NewRow() *Row {
+func NewRow(flushTime time.Duration) *Row {
 	return &Row{
-		Dimension: NewDimension(),
+		Dimension: NewDimension(flushTime),
 		Metric:    Metric{},
 	}
 }
@@ -60,6 +60,7 @@ type statRowCtxKey struct{}
 
 type StatManager interface {
 	AppendRow(row *Row)
+	FlushTime() time.Duration
 }
 
 func (r *Row) SetToCtx(ctx context.Context) context.Context {

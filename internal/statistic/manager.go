@@ -77,6 +77,7 @@ func (m *Manager) insert(ctx context.Context) error {
 		for dimension, metric := range rowsToInsert {
 			m.Append(dimension, metric)
 		}
+
 		return fmt.Errorf("%v: %v", op, err)
 	}
 
@@ -118,4 +119,8 @@ func (m *Manager) loop() {
 
 func (m *Manager) Run() {
 	m.loop()
+}
+
+func (m *Manager) FlushTime() time.Duration {
+	return m.flushTime
 }

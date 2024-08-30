@@ -34,6 +34,15 @@ type AppConfig struct {
 	LinkCache       Cache         `yaml:"link_cache"`
 	ShutDownTimeout time.Duration `yaml:"shut_down_timeout"`
 	Metrics         Metrics       `yaml:"metrics"`
+	ClickHouse      ClickHouse    `yaml:"ClickHouse"`
+}
+
+type ClickHouse struct {
+	Host string `yaml:"host"`
+	Port string `yaml:"port"`
+	Db   string `yaml:"db"`
+	User string `yaml:"user"`
+	Pass string `yaml:"password"`
 }
 
 type Metrics struct {

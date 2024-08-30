@@ -8,3 +8,9 @@ link_cache:
 shut_down_timeout: 60s
 metrics:
   addr: "127.0.0.1:8081"
+ClickHouse:
+  host: "localhost"
+  port: 9000
+  db: "statistics"
+  user: "sl"
+  password: "sl_password"
