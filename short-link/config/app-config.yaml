@@ -2,10 +2,6 @@ env: "local"
 db_conn: "postgres://sl:sl_password@localhost:5432/sl?sslmode=disable"
 http_server:
   port: ":8080"
-link_cache:
-  ttl: 600s
-  type: "bigcache"
-shut_down_timeout: 60s
 metrics:
   addr: "127.0.0.1:8081"
 ClickHouse:

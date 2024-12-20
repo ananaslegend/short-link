@@ -1,6 +1,8 @@
 package config
 
 import (
+	"fmt"
+	"github.com/joho/godotenv"
 	"gopkg.in/yaml.v3"
 	"log"
 	"os"
@@ -10,17 +12,12 @@ import (
 type Env string
 
 const (
-	Dev   Env = "dev"
+	Test  Env = "test"
 	Prod  Env = "prod"
 	Local Env = "local"
 )
 
 type CacheType string
-
-const (
-	BigCache = "bigcache"
-	Redis    = "redis"
-)
 
 type Cache struct {
 	TTL       time.Duration `yaml:"ttl"`
@@ -28,13 +25,11 @@ type Cache struct {
 }
 
 type AppConfig struct {
-	Env             Env           `yaml:"env"`
-	DbConn          string        `yaml:"db_conn" env-required:"true"`
-	HttpServer      HttpServer    `yaml:"http_server"`
-	LinkCache       Cache         `yaml:"link_cache"`
-	ShutDownTimeout time.Duration `yaml:"shut_down_timeout"`
-	Metrics         Metrics       `yaml:"metrics"`
-	ClickHouse      ClickHouse    `yaml:"ClickHouse"`
+	Env        Env        `yaml:"env"`
+	DbConn     string     `yaml:"db_conn" env-required:"true"`
+	HttpServer HttpServer `yaml:"http_server"`
+	Metrics    Metrics    `yaml:"metrics"`
+	ClickHouse ClickHouse `yaml:"ClickHouse"`
 }
 
 type ClickHouse struct {
@@ -75,6 +70,35 @@ func MustLoadYaml(confPath string) AppConfig {
 			log.Fatalf("failed to unmarshal config file: %s", err)
 		}
 	}
+
+	return cfg
+}
+
+func MustLoadFromEnv() AppConfig {
+	env := os.Getenv("ENV")
+	if env == "" {
+		env = "local"
+	}
+
+	if err := godotenv.Load(fmt.Sprintf(".env.%v", env)); err != nil {
+		panic(fmt.Sprintf("failed to load env, error: %v", err))
+	}
+
+	cfg := AppConfig{}
+
+	cfg.Env = Env(env)
+
+	cfg.DbConn = os.Getenv("DB_CONN")
+
+	cfg.HttpServer.Port = os.Getenv("HTTP_PORT")
+
+	cfg.Metrics.Addr = os.Getenv("METRICS_ADDR")
+
+	cfg.ClickHouse.Host = os.Getenv("CLICKHOUSE_HOST")
+	cfg.ClickHouse.Port = os.Getenv("CLICKHOUSE_PORT")
+	cfg.ClickHouse.Db = os.Getenv("CLICKHOUSE_DATABASE")
+	cfg.ClickHouse.User = os.Getenv("CLICKHOUSE_USER")
+	cfg.ClickHouse.Pass = os.Getenv("CLICKHOUSE_PASSWORD")
 
 	return cfg
 }

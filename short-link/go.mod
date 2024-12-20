@@ -1,6 +1,6 @@
 module github.com/ananaslegend/short-link
 
-go 1.22
+go 1.23.2
 
 require (
 	github.com/ClickHouse/clickhouse-go/v2 v2.26.0
@@ -24,6 +24,7 @@ require (
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/go-faster/city v1.0.1 // indirect
 	github.com/go-faster/errors v0.7.1 // indirect
+	github.com/joho/godotenv v1.5.1 // indirect
 	github.com/klauspost/compress v1.17.9 // indirect
 	github.com/matttproud/golang_protobuf_extensions/v2 v2.0.0 // indirect
 	github.com/paulmach/orb v0.11.1 // indirect

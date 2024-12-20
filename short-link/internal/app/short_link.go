@@ -41,10 +41,10 @@ type App struct {
 	statManager  StatManager
 }
 
-func New(ctx context.Context, confPath string) App {
+func New(ctx context.Context) App {
 	a := App{}
 
-	a.config = config.MustLoadYaml(confPath)
+	a.config = config.MustLoadFromEnv()
 
 	ctx = a.setUpLogger(ctx)
 
@@ -148,7 +148,7 @@ func (a *App) setUpLogger(ctx context.Context) context.Context {
 	switch a.config.Env {
 	case config.Local:
 		handler = slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug})
-	case config.Dev:
+	case config.Test:
 		handler = slog.Handler(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug, AddSource: true}))
 	default:
 		handler = slog.Handler(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo, AddSource: true}))

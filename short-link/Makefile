@@ -20,19 +20,38 @@ CLICKHOUSE_DATABASE=statistics
 CLICKHOUSE_IMAGE=clickhouse/clickhouse-server:24.4-alpine
 CLICKHOUSE_CONTAINER_NAME := sl-clickhouse-server
 CLICKHOUSE_MIGRATION_PATH=./migrations/clickhouse
+CLICKHOUSE_MIGRATION_DRIVER=clickhouse
 
 GREEN = "\033[0;32m"
 YELLOW = "\033[0;33m"
 RED = "\033[0;31m"
 NO_COLOR = "\033[0m"
 
-.PHONY: shortlink_up
-shortlink_up:
+.PHONY: local-env-up
+local-env-up:
+	@echo $(GREEN)"[ENVIRONMENT] setting up environment..."$(NO_COLOR)
+	@make get-migrate-tool
+	@make redis-up
+	@make postgres-up
+	@sleep 2
+	@make postgres-migrate-up
+	@make clickhouse-up
+	@sleep 5
+	@make clickhouse-migrate-up
+
+.PHONY: local-env-down
+local-env-down:
+	@make redis-down
+	@make postgres-down
+	@make clickhouse-down
+
+.PHONY: shortlink-up
+shortlink-up:
 	@echo $(GREEN)"[SHORTLINK] starting..."$(NO_COLOR)
 	@go run cmd/shortlink/main.go
 
-.PHONY: redis_up
-redis_up:
+.PHONY: redis-up
+redis-up:
 	@echo $(GREEN)"[REDIS] starting local container $(REDIS_CONTAINER_NAME)..." $(NO_COLOR)
 	@if docker ps -a --format '{{.Names}}' | grep -Eq "^$(REDIS_CONTAINER_NAME)$$"; then \
   		echo $(RED)"[REDIS] container already exists, stopping it..."$(NO_COLOR); \
@@ -41,15 +60,15 @@ redis_up:
 	fi
 	@docker run -d --rm --name $(REDIS_CONTAINER_NAME) -p $(REDIS_PORT):6379 $(REDIS_IMAGE)
 
-.PHONY: redis_down
-redis_down:
+.PHONY: redis-down
+redis-down:
 	@echo $(YELLOW)"[REDIS] stopping local container...$(REDIS_CONTAINER_NAME)..."$(NO_COLOR)
 	@docker stop $(REDIS_CONTAINER_NAME)
 
-.PHONY: get-migrate-postgres
-get-migrate-postgres:
+.PHONY: get-migrate-tool
+get-migrate-tool:
 	@echo $(GREEN)"[MIGRATE] getting migrate tool..."$(NO_COLOR)
-	@go install -tags $(POSTGRES_MIGRATION_DRIVER) github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+	@go install -tags "$(POSTGRES_MIGRATION_DRIVER) $(CLICKHOUSE_MIGRATION_DRIVER)" github.com/golang-migrate/migrate/v4/cmd/migrate@latest
 
 .PHONY: postgres-migrate-up
 postgres-migrate-up:
@@ -61,31 +80,31 @@ postgres-migrate-down:
 	@echo $(GREEN)"[POSTGRES] migrate down..."$(NO_COLOR)
 	@migrate -path $(POSTGRES_MIGRATION_PATH) -database "postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@localhost:$(POSTGRES_PORT)/$(POSTGRES_DB)?sslmode=disable" down
 
-.PHONY: postgres_up
-postgres_up:
+.PHONY: postgres-up
+postgres-up:
 	@echo $(GREEN)"[POSTGRES] starting local container..."$(NO_COLOR)
 	@docker run -d --rm --name $(POSTGRES_CONTAINER_NAME) -p $(POSTGRES_PORT):5432 -e POSTGRES_USER=$(POSTGRES_USER) -e POSTGRES_PASSWORD=$(POSTGRES_PASSWORD) -e POSTGRES_DB=$(POSTGRES_DB) $(POSTGRES_IMAGE)
 
-.PHONY: postgres_down
-postgres_down:
+.PHONY: postgres-down
+postgres-down:
 	@echo $(YELLOW)"[POSTGRES] stopping local container... $(POSTGRES_CONTAINER_NAME)..."$(NO_COLOR)
 	@docker stop $(POSTGRES_CONTAINER_NAME)
 
-.PHONY: postgres_connection_string
-postgres_connection_string:
+.PHONY: postgres-connection-string
+postgres-connection-string:
 	@echo $(YELLOW)"[POSTGRES] connection string: postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@$(POSTGRES_HOST):$(POSTGRES_PORT)/$(POSTGRES_DB)?sslmode=disable"$(NO_COLOR)
 
-.PHONY: clickhouse_up
-clickhouse_up:
+.PHONY: clickhouse-up
+clickhouse-up:
 	@echo $(GREEN)"[CLICKHOUSE] starting local container..."$(NO_COLOR)
 	@docker run -d --rm --name $(CLICKHOUSE_CONTAINER_NAME) -p $(CLICKHOUSE_PORT):8123 -p 9000:9000 -p 9999:9999 -e CLICKHOUSE_USER=$(CLICKHOUSE_USER) -e CLICKHOUSE_PASSWORD=$(CLICKHOUSE_PASSWORD) -e CLICKHOUSE_DB=$(CLICKHOUSE_DATABASE) $(CLICKHOUSE_IMAGE)
 
-.PHONY: clickhouse_up
-clickhouse_down:
+.PHONY: clickhouse-down
+clickhouse-down:
 	@echo $(YELLOW)"[CLICKHOUSE] stopping local container..."$(NO_COLOR)
 	@docker stop $(CLICKHOUSE_CONTAINER_NAME)
 
-.PHONY: clickhouse_migrate_up
-clickhouse_migrate_up:
+.PHONY: clickhouse-migrate-up
+clickhouse-migrate-up:
 	@echo $(GREEN)"[CLICKHOUSE] migrate up..."$(NO_COLOR)
 	@migrate -path ./migrations/clickhouse -database "clickhouse://$(CLICKHOUSE_HOST):9000?username=$(CLICKHOUSE_USER)&password=$(CLICKHOUSE_PASSWORD)&database=$(CLICKHOUSE_DATABASE)&x-multi-statement=true" up
