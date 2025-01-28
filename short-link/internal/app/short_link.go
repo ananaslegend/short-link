@@ -4,7 +4,16 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"log/slog"
+	"net/http"
+	"os"
+	"time"
+
 	"github.com/ananaslegend/go-logs/v2"
+	"github.com/go-pkgz/routegroup"
+	"github.com/go-redis/redis/v8"
+	"golang.org/x/sync/errgroup"
+
 	"github.com/ananaslegend/short-link/internal/config"
 	"github.com/ananaslegend/short-link/internal/metrics"
 	redirectHandler "github.com/ananaslegend/short-link/internal/redirect/handler"
@@ -15,13 +24,10 @@ import (
 	saveService "github.com/ananaslegend/short-link/internal/save/service"
 	"github.com/ananaslegend/short-link/internal/statistic"
 	"github.com/ananaslegend/short-link/internal/storage"
-	"github.com/go-pkgz/routegroup"
-	"github.com/go-redis/redis/v8"
-	"golang.org/x/sync/errgroup"
-	"log/slog"
-	"net/http"
-	"os"
-	"time"
+)
+
+const (
+	defaultRowsCap = 1000
 )
 
 type StatManager interface {
@@ -32,13 +38,14 @@ type StatManager interface {
 }
 
 type App struct {
-	logger       *slog.Logger
-	config       config.AppConfig
-	db           *sql.DB
-	redisClient  *redis.Client
-	httpServer   *http.Server
-	metricServer *http.Server
-	statManager  StatManager
+	logger        *slog.Logger
+	config        config.AppConfig
+	db            *sql.DB
+	redisClient   *redis.Client
+	httpServer    *http.Server
+	metricServer  *http.Server
+	swaggerServer *http.Server
+	statManager   StatManager
 }
 
 func New(ctx context.Context) App {
@@ -50,13 +57,15 @@ func New(ctx context.Context) App {
 
 	a.metricServer = metrics.SetUpServer(a.config.Metrics.Addr)
 
-	a.mustSetUpDB(ctx)
+	a.mustSetUpPostgresDB(ctx)
 
 	a.setUpRedis()
 
 	a.setUpStatisticManager()
 
 	a.setUpHTTPServer()
+
+	a.setupSwaggerDocumentationServer()
 
 	return a
 }
@@ -91,6 +100,10 @@ func (a *App) Run() error {
 		return nil
 	})
 
+	eg.Go(
+		a.runSwaggerDocumentationServer,
+	)
+
 	if err := eg.Wait(); err != nil {
 		a.logger.Error("error during app.Run()", logs.ErrorMsg(err))
 
@@ -122,6 +135,11 @@ func (a *App) setUpHTTPServer() {
 	a.httpServer = &http.Server{
 		Addr:    a.config.HttpServer.Port,
 		Handler: router,
+
+		ReadHeaderTimeout: config.DefaultReadHeaderRequestTimeout,
+		ReadTimeout:       config.DefaultReadRequestTimeout,
+		WriteTimeout:      config.DefaultWriteTimeout,
+		IdleTimeout:       config.DefaultIdleTimeout,
 	}
 }
 
@@ -139,7 +157,7 @@ func (a *App) redirectHandler() http.HandlerFunc {
 
 	serviceRedirect := redirectService.New(cachedRepositoryRedirect, a.statManager)
 
-	return redirectHandler.New(serviceRedirect).ServeHTTP
+	return redirectHandler.New(serviceRedirect).RedirectHandler
 }
 
 func (a *App) setUpLogger(ctx context.Context) context.Context {
@@ -168,16 +186,16 @@ func (a *App) setAppLoggingMetrics(ctx context.Context) context.Context {
 	return ctx
 }
 
-func (a *App) mustSetUpDB(ctx context.Context) {
+func (a *App) mustSetUpPostgresDB(ctx context.Context) {
 	db, err := storage.NewPostgres(a.config.DbConn)
 	if err != nil {
-		a.logger.ErrorContext(ctx, "cant connect to database", logs.ErrorMsg(err))
+		a.logger.ErrorContext(ctx, "cant connect to postgres database", logs.ErrorMsg(err))
 		os.Exit(1)
 	}
 
 	a.db = db
 
-	a.logger.InfoContext(ctx, "database connected")
+	a.logger.InfoContext(ctx, "postgres database connected")
 }
 
 func (a *App) setUpRedis() {
@@ -195,5 +213,5 @@ func (a *App) setUpStatisticManager() {
 	}
 
 	repositoryStatistic := statistic.NewNativeClickHouseRepository(ch)
-	a.statManager = statistic.NewManager(1*time.Second, 1000, repositoryStatistic, a.logger)
+	a.statManager = statistic.NewManager(1*time.Second, defaultRowsCap, repositoryStatistic, a.logger)
 }

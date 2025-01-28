@@ -1,9 +1,9 @@
 package storage
 
 import (
-	_ "github.com/mattn/go-sqlite3"
-
 	"database/sql"
+
+	_ "github.com/mattn/go-sqlite3"
 )
 
 func NewSQLite(dbPath string) (*sql.DB, error) {

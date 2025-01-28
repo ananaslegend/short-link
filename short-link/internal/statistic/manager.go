@@ -4,10 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/ananaslegend/go-logs/v2"
 	"log/slog"
 	"sync"
 	"time"
+
+	"github.com/ananaslegend/go-logs/v2"
 )
 
 // Writer should insert stats to db.

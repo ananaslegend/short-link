@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+
 	"github.com/ananaslegend/short-link/internal/statistic"
 )
 

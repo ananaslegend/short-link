@@ -3,11 +3,13 @@ package service
 import (
 	"context"
 	"errors"
+	"strings"
+
+	"github.com/google/uuid"
+
 	"github.com/ananaslegend/short-link/internal/save/repository"
 	"github.com/ananaslegend/short-link/pkg/clog"
 	"github.com/ananaslegend/short-link/pkg/shortner"
-	"github.com/google/uuid"
-	"strings"
 )
 
 type InsertLinkRepo interface {

@@ -3,9 +3,10 @@ package handler
 import (
 	"context"
 	"errors"
+	"net/http"
+
 	"github.com/ananaslegend/short-link/internal/redirect/service"
 	"github.com/ananaslegend/short-link/pkg/clog"
-	"net/http"
 )
 
 var (
@@ -26,7 +27,19 @@ func New(srv GetLinkService) *Handler {
 	}
 }
 
-func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+// RedirectHandler godoc
+//
+//	@Summary		Redirect to the original link
+//	@Description	Redirect to the original link by alias
+//	@Tags			redirect
+//	@Accept			json
+//	@Produce		json
+//	@Param			alias	path		string	true	"Alias"
+//	@Success		302		{string}	string	"Redirect to the original link"
+//	@Failure		400		{object}	any
+//	@Failure		404		{object}	any
+//	@Router			/{alias} [get]
+func (h Handler) RedirectHandler(w http.ResponseWriter, r *http.Request) {
 	alias, err := h.fetchAlias(r.Context(), r)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)

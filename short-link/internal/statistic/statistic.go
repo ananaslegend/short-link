@@ -37,11 +37,7 @@ func NewRow(flushTime time.Duration) *Row {
 }
 
 func (r *Row) IsEmpty() bool {
-	if r.Metric.Redirect == 0 {
-		return true
-	}
-
-	return false
+	return r.Metric.Redirect == 0
 }
 
 type Rows map[Dimension]Metric

@@ -2,9 +2,11 @@ package middleware
 
 import (
 	"context"
-	"github.com/ananaslegend/short-link/pkg/clog"
-	"github.com/google/uuid"
 	"net/http"
+
+	"github.com/google/uuid"
+
+	"github.com/ananaslegend/short-link/pkg/clog"
 )
 
 type reqIDKey struct{}

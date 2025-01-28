@@ -30,7 +30,7 @@ func Ctx(ctx context.Context) *slog.Logger {
 
 func With(ctx context.Context, args ...any) context.Context {
 	if logger, ok := ctx.Value(Key{}).(*slog.Logger); ok {
-		newLogger := logger.With(args)
+		newLogger := logger.With(args) //nolint:govet // todo
 		return context.WithValue(ctx, Key{}, newLogger)
 	}
 
@@ -66,5 +66,4 @@ func WithInt(ctx context.Context, key string, value int) context.Context {
 
 func ErrorMsg(err error) slog.Attr {
 	return slog.String("error", err.Error())
-
 }

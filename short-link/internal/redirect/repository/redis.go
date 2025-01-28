@@ -2,10 +2,12 @@ package repository
 
 import (
 	"context"
-	"github.com/ananaslegend/short-link/pkg/clog"
-	"github.com/go-redis/redis/v8"
 	"log/slog"
 	"time"
+
+	"github.com/go-redis/redis/v8"
+
+	"github.com/ananaslegend/short-link/pkg/clog"
 )
 
 type SelectRepository interface {

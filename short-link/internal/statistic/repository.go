@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+
 	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
 )
 
@@ -25,6 +26,8 @@ func (r PostgresRepository) InsertRows(ctx context.Context, rows Rows) error {
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}
+
+	defer stmt.Close()
 
 	var errs = make([]error, 0)
 	for dimension, metric := range rows {

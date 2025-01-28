@@ -23,6 +23,8 @@ func (r Repository) SelectLink(ctx context.Context, alias string) (string, error
 		return "", err
 	}
 
+	defer stmt.Close()
+
 	var link string
 	if err = stmt.QueryRowContext(ctx, alias).Scan(&link); err != nil {
 		return "", err

@@ -2,11 +2,20 @@ package config
 
 import (
 	"fmt"
-	"github.com/joho/godotenv"
-	"gopkg.in/yaml.v3"
 	"log"
 	"os"
+	"strconv"
 	"time"
+
+	"github.com/joho/godotenv"
+	"gopkg.in/yaml.v3"
+)
+
+const (
+	DefaultReadHeaderRequestTimeout = 5 * time.Second
+	DefaultReadRequestTimeout       = 10 * time.Second
+	DefaultWriteTimeout             = 10 * time.Second
+	DefaultIdleTimeout              = 120 * time.Second
 )
 
 type Env string
@@ -30,6 +39,11 @@ type AppConfig struct {
 	HttpServer HttpServer `yaml:"http_server"`
 	Metrics    Metrics    `yaml:"metrics"`
 	ClickHouse ClickHouse `yaml:"ClickHouse"`
+	Swagger    Swagger
+}
+
+type Swagger struct {
+	Port int
 }
 
 type ClickHouse struct {
@@ -90,7 +104,7 @@ func MustLoadFromEnv() AppConfig {
 
 	cfg.DbConn = os.Getenv("DB_CONN")
 
-	cfg.HttpServer.Port = os.Getenv("HTTP_PORT")
+	cfg.HttpServer.Port = os.Getenv("HTTP_SERVER_PORT")
 
 	cfg.Metrics.Addr = os.Getenv("METRICS_ADDR")
 
@@ -99,6 +113,13 @@ func MustLoadFromEnv() AppConfig {
 	cfg.ClickHouse.Db = os.Getenv("CLICKHOUSE_DATABASE")
 	cfg.ClickHouse.User = os.Getenv("CLICKHOUSE_USER")
 	cfg.ClickHouse.Pass = os.Getenv("CLICKHOUSE_PASSWORD")
+
+	swaggerPort, err := strconv.Atoi(os.Getenv("SWAGGER_PORT"))
+	if err != nil {
+		panic(fmt.Sprintf("invalid swagger documentation http server port: %v", err))
+	}
+
+	cfg.Swagger.Port = swaggerPort
 
 	return cfg
 }

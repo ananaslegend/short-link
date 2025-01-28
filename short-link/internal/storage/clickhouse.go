@@ -4,9 +4,14 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"time"
+
 	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
-	"time"
+)
+
+const (
+	connectingClickHouseTimeout = 5 * time.Second
 )
 
 func NewClickHouseDB(host, port, db, pass, user string) (*sql.DB, error) {
@@ -46,7 +51,7 @@ func NewClickHouse(host, port, db, pass, user string) (driver.Conn, error) {
 		return nil, err
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), connectingClickHouseTimeout)
 	defer cancel()
 
 	if err = chDB.Ping(ctx); err != nil {

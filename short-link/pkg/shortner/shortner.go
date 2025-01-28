@@ -1,8 +1,9 @@
 package shortner
 
 import (
-	"github.com/ananaslegend/short-link/utils"
 	"strings"
+
+	"github.com/ananaslegend/short-link/utils"
 )
 
 const alphabet = "1qazQAZ2wsxWSX3edcEDC4rfvRFV5tgbTGB6yhnYHN7ujmUJM8ikK9oLPp"

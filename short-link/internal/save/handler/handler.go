@@ -4,11 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"github.com/ananaslegend/short-link/internal/save/service"
-	"github.com/ananaslegend/short-link/pkg/clog"
 	"io"
 	"log/slog"
 	"net/http"
+
+	"github.com/ananaslegend/short-link/internal/save/service"
+	"github.com/ananaslegend/short-link/pkg/clog"
 )
 
 type LinkSetterService interface {
@@ -83,6 +84,7 @@ func (h Handler) renderError(ctx context.Context, err error, w http.ResponseWrit
 			clog.Ctx(ctx).Error("cant encode json", clog.ErrorMsg(err))
 			w.WriteHeader(http.StatusInternalServerError)
 		}
+
 	default:
 		clog.Ctx(ctx).Error("failed to add link", clog.ErrorMsg(err))
 		w.WriteHeader(http.StatusInternalServerError)

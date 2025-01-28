@@ -2,11 +2,19 @@ package main
 
 import (
 	"context"
-	"github.com/ananaslegend/short-link/internal/app"
 	"os/signal"
 	"syscall"
+
+	_ "github.com/ananaslegend/short-link/docs"
+	"github.com/ananaslegend/short-link/internal/app"
 )
 
+//	@title		Short link service
+//	@version	v1.0
+
+// @host		localhost:1323
+// @BasePath	/api/v1
+// @schemes	http https
 func main() {
 	ctx := context.Background()
 

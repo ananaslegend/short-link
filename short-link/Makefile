@@ -27,6 +27,25 @@ YELLOW = "\033[0;33m"
 RED = "\033[0;31m"
 NO_COLOR = "\033[0m"
 
+.PHONY: lint
+lint:
+	@echo $(GREEN)"[GOLANGCI-LINT] running linter..."$(NO_COLOR)
+	@golangci-lint run --config=.golangci.yml --timeout=2m
+
+.PHONY: imports
+imports:
+	@echo $(GREEN)"[GCI] formating imports..."$(NO_COLOR)
+	gci write ./ --skip-generated --skip-vendor --custom-order -s standard -s default -s blank -s dot -s alias -s localmodule
+
+.PHONY: swag
+swag:
+	@echo $(GREEN)"[SWAGGER] generating swagger docs..."$(NO_COLOR)
+	@swag init -o ./docs
+
+.PHONY: swag-fmt
+swag-fmt:
+	swag fmt - format swag comments
+
 .PHONY: local-env-up
 local-env-up:
 	@echo $(GREEN)"[ENVIRONMENT] setting up environment..."$(NO_COLOR)

@@ -1,8 +1,9 @@
 package middleware
 
 import (
-	"github.com/ananaslegend/short-link/pkg/clog"
 	"net/http"
+
+	"github.com/ananaslegend/short-link/pkg/clog"
 )
 
 type wrappedRespWriter struct {

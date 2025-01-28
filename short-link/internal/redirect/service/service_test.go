@@ -3,8 +3,9 @@ package service
 import (
 	"context"
 	"errors"
-	"github.com/ananaslegend/short-link/internal/redirect/repository"
 	"testing"
+
+	"github.com/ananaslegend/short-link/internal/redirect/repository"
 )
 
 type SelectLinkRepoMock struct {

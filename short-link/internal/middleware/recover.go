@@ -1,9 +1,10 @@
 package middleware
 
 import (
-	"github.com/ananaslegend/short-link/pkg/clog"
 	"log/slog"
 	"net/http"
+
+	"github.com/ananaslegend/short-link/pkg/clog"
 )
 
 func WithRecover(next http.Handler) http.Handler {
@@ -14,8 +15,8 @@ func WithRecover(next http.Handler) http.Handler {
 					clog.Ctx(r.Context()).Error("app in panic!", slog.Any("request:", r))
 					w.WriteHeader(http.StatusInternalServerError)
 				}
-				return
 			}()
+
 			next.ServeHTTP(w, r)
 		},
 	)

@@ -1,0 +1,96 @@
+linters:
+  enable:
+    - bodyclose
+    - zerologlint
+    - goconst
+    - gocritic
+    - goprintffuncname
+    - gosec
+    - nakedret
+    - noctx
+    - unconvert
+    - asciicheck
+    - bidichk
+    - decorder
+    - dupword
+    - copyloopvar
+    - funlen
+    - gochecknoinits
+    - gofmt
+    - goheader
+    - mnd
+    - nosprintfhostport
+    - prealloc
+    - rowserrcheck
+    - sqlclosecheck
+    - usestdlibvars
+    - whitespace
+    - ineffassign
+    - prealloc
+    - errcheck
+    - gci
+    - depguard
+
+linters-settings:
+  funlen:
+    lines: 100
+    statements: 50
+
+  gocritic:
+    disabled-checks:
+      - commentFormatting
+
+  gocyclo:
+    min-complexity: 10
+
+  gci:
+    sections:
+      - standard
+      - default
+      - blank
+      - dot
+      - alias
+      - localmodule
+    skip-generated: true
+
+  depguard:
+    rules:
+      main:
+        deny:
+          - pkg: github.com/golang/mock
+            desc: use go.uber.org/mock/mockgen
+
+issues:
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - bodyclose
+        - zerologlint
+        - goconst
+        - gocritic
+        - goprintffuncname
+        - gosec
+        - nakedret
+        - noctx
+        - unconvert
+        - asciicheck
+        - bidichk
+        - decorder
+        - dupword
+        - copyloopvar
+        - funlen
+        - gochecknoinits
+        - gofmt
+        - goheader
+        - mnd
+        - nosprintfhostport
+        - prealloc
+        - rowserrcheck
+        - sqlclosecheck
+        - usestdlibvars
+        - whitespace
+        - ineffassign
+        - prealloc
+        - errcheck
+        - gci
+        - depguard
