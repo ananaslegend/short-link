@@ -236,5 +236,5 @@ func (a *App) mustSetupStatisticManager() {
 	}
 
 	repositoryStatistic := statistic.NewNativeClickHouseRepository(ch)
-	a.statManager = statistic.NewManager(1*time.Second, defaultRowsCap, repositoryStatistic, a.logger)
+	a.statManager = statistic.NewManager(a.config.FlushStatisticDuration, defaultRowsCap, repositoryStatistic, a.logger)
 }

@@ -34,14 +34,16 @@ type Cache struct {
 }
 
 type AppConfig struct {
-	Env              Env           `env-required:"true"`
-	DbConn           string        `env-required:"true"`
-	HttpServer       HttpServer    `env-required:"true"`
-	Metrics          Metrics       `env-required:"true"`
-	ClickHouse       ClickHouse    `env-required:"true"`
-	Swagger          Swagger       `env-required:"true"`
-	ShutdownDuration time.Duration `env-required:"true"`
-	Redis            Redis
+	Env        Env        `env-required:"true"`
+	DbConn     string     `env-required:"true"`
+	HttpServer HttpServer `env-required:"true"`
+	Metrics    Metrics    `env-required:"true"`
+	ClickHouse ClickHouse `env-required:"true"`
+	Swagger    Swagger    `env-required:"true"`
+	Redis      Redis
+
+	ShutdownDuration       time.Duration `env-required:"true"`
+	FlushStatisticDuration time.Duration `env-required:"true"`
 }
 
 type Swagger struct {
@@ -137,6 +139,13 @@ func MustLoadFromEnv() AppConfig {
 
 	cfg.Redis.Addr = os.Getenv("REDIS_ADDR")
 	cfg.Redis.Password = os.Getenv("REDIS_PASS")
+
+	statFlushDuration, err := time.ParseDuration(os.Getenv("FLUSH_STATISTIC_DURATION"))
+	if err != nil || statFlushDuration == 0 {
+		panic(fmt.Sprintf("invalid shutdown duration: %v", err))
+	}
+
+	cfg.FlushStatisticDuration = statFlushDuration
 
 	return cfg
 }
