@@ -1,0 +1,56 @@
+{
+    "schemes": [
+        "http",
+        "https"
+    ],
+    "swagger": "2.0",
+    "info": {
+        "title": "Short link service",
+        "contact": {},
+        "version": "v1.0"
+    },
+    "host": "localhost:1323",
+    "basePath": "/api/v1",
+    "paths": {
+        "/{alias}": {
+            "get": {
+                "description": "Redirect to the original link by alias",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "redirect"
+                ],
+                "summary": "Redirect to the original link",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Alias",
+                        "name": "alias",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "302": {
+                        "description": "Redirect to the original link",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {}
+                    }
+                }
+            }
+        }
+    }
+}

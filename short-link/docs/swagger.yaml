@@ -1,0 +1,38 @@
+basePath: /api/v1
+host: localhost:1323
+info:
+  contact: {}
+  title: Short link service
+  version: v1.0
+paths:
+  /{alias}:
+    get:
+      consumes:
+      - application/json
+      description: Redirect to the original link by alias
+      parameters:
+      - description: Alias
+        in: path
+        name: alias
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "302":
+          description: Redirect to the original link
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+      summary: Redirect to the original link
+      tags:
+      - redirect
+schemes:
+- http
+- https
+swagger: "2.0"
