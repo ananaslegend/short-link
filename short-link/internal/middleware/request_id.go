@@ -2,11 +2,12 @@ package middleware
 
 import (
 	"context"
+	"log/slog"
 	"net/http"
 
 	"github.com/google/uuid"
 
-	"github.com/ananaslegend/short-link/pkg/clog"
+	"github.com/ananaslegend/short-link/pkg/cslog"
 )
 
 type reqIDKey struct{}
@@ -26,7 +27,7 @@ func WithRequestID(next http.Handler) http.Handler {
 			reqID = uuid.New().String()
 		}
 
-		ctx := clog.WithString(r.Context(), RequestIDLogKey, reqID)
+		ctx := cslog.With(r.Context(), slog.String(RequestIDLogKey, reqID))
 
 		ctx = context.WithValue(ctx, reqIDKey{}, reqID)
 
@@ -40,7 +41,7 @@ func RequestID(ctx context.Context) string {
 	reqID, _ := ctx.Value(reqIDKey{}).(string)
 
 	if reqID == "" {
-		clog.Ctx(ctx).Error("request_id not found")
+		cslog.Logger(ctx).Error("request_id not found")
 	}
 
 	return reqID

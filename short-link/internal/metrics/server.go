@@ -8,7 +8,7 @@ import (
 	"github.com/ananaslegend/short-link/internal/config"
 )
 
-func SetUpServer(addr string) *http.Server {
+func SetupServer(addr string) *http.Server {
 	mux := http.NewServeMux()
 	mux.Handle("/metrics", promhttp.Handler())
 

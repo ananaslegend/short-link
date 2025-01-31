@@ -3,7 +3,7 @@ package middleware
 import (
 	"net/http"
 
-	"github.com/ananaslegend/short-link/pkg/clog"
+	"github.com/ananaslegend/short-link/pkg/cslog"
 )
 
 type wrappedRespWriter struct {
@@ -18,7 +18,7 @@ func (w *wrappedRespWriter) WriteHeader(statusCode int) {
 
 func WithLoggingRequest(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		logger := clog.Ctx(r.Context())
+		logger := cslog.Logger(r.Context())
 
 		wrappedWriter := &wrappedRespWriter{
 			ResponseWriter: w,

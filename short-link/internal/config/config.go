@@ -34,12 +34,14 @@ type Cache struct {
 }
 
 type AppConfig struct {
-	Env        Env        `yaml:"env"`
-	DbConn     string     `yaml:"db_conn" env-required:"true"`
-	HttpServer HttpServer `yaml:"http_server"`
-	Metrics    Metrics    `yaml:"metrics"`
-	ClickHouse ClickHouse `yaml:"ClickHouse"`
-	Swagger    Swagger
+	Env              Env           `env-required:"true"`
+	DbConn           string        `env-required:"true"`
+	HttpServer       HttpServer    `env-required:"true"`
+	Metrics          Metrics       `env-required:"true"`
+	ClickHouse       ClickHouse    `env-required:"true"`
+	Swagger          Swagger       `env-required:"true"`
+	ShutdownDuration time.Duration `env-required:"true"`
+	Redis            Redis
 }
 
 type Swagger struct {
@@ -61,6 +63,11 @@ type Metrics struct {
 type HttpServer struct {
 	Port string `yaml:"port"`
 	// TODO timeouts
+}
+
+type Redis struct {
+	Addr     string
+	Password string
 }
 
 // MustLoadYaml loads config from yaml file and panic if error occurred.
@@ -120,6 +127,16 @@ func MustLoadFromEnv() AppConfig {
 	}
 
 	cfg.Swagger.Port = swaggerPort
+
+	shutdownDuration, err := time.ParseDuration(os.Getenv("SHUTDOWN_DURATION"))
+	if err != nil {
+		panic(fmt.Sprintf("invalid shutdown duration: %v", err))
+	}
+
+	cfg.ShutdownDuration = shutdownDuration
+
+	cfg.Redis.Addr = os.Getenv("REDIS_ADDR")
+	cfg.Redis.Password = os.Getenv("REDIS_PASS")
 
 	return cfg
 }

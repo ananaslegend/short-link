@@ -7,7 +7,7 @@ import (
 
 	"github.com/go-redis/redis/v8"
 
-	"github.com/ananaslegend/short-link/pkg/clog"
+	"github.com/ananaslegend/short-link/pkg/cslog"
 )
 
 type SelectRepository interface {
@@ -30,7 +30,7 @@ func NewRedisCache(repo SelectRepository, client *redis.Client) *Redis {
 func (r Redis) SelectLink(ctx context.Context, alias string) (string, error) {
 	link, err := r.client.Get(ctx, alias).Result()
 	if err == nil {
-		clog.Ctx(ctx).Info("got link from cache", slog.String("link", link))
+		cslog.Logger(ctx).Info("got link from cache", slog.String("link", link))
 		return link, nil
 	}
 
@@ -40,7 +40,7 @@ func (r Redis) SelectLink(ctx context.Context, alias string) (string, error) {
 	}
 
 	if err = r.client.Set(ctx, alias, link, r.timeout).Err(); err != nil {
-		clog.Ctx(ctx).Error("cant set link to cache", clog.ErrorMsg(err))
+		cslog.Logger(ctx).Error("cant set link to cache", cslog.Error(err))
 	}
 
 	return link, nil

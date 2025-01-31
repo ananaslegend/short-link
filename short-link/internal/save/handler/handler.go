@@ -5,11 +5,10 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
-	"log/slog"
 	"net/http"
 
 	"github.com/ananaslegend/short-link/internal/save/service"
-	"github.com/ananaslegend/short-link/pkg/clog"
+	"github.com/ananaslegend/short-link/pkg/cslog"
 )
 
 type LinkSetterService interface {
@@ -30,7 +29,7 @@ type Handler struct {
 	service LinkSetterService
 }
 
-func New(srv LinkSetterService, log *slog.Logger) *Handler {
+func New(srv LinkSetterService) *Handler {
 	return &Handler{
 		service: srv,
 	}
@@ -39,14 +38,14 @@ func New(srv LinkSetterService, log *slog.Logger) *Handler {
 func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	b, err := io.ReadAll(r.Body)
 	if err != nil {
-		clog.Ctx(r.Context()).Error("cant read body", clog.ErrorMsg(err))
+		cslog.Logger(r.Context()).Error("cant read body", cslog.Error(err))
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	var req Request
 	if err = json.Unmarshal(b, &req); err != nil { // TODO Add Validation
-		clog.Ctx(r.Context()).With("body", b).Error("cant unmarshal request body", clog.ErrorMsg(err))
+		cslog.Logger(r.Context()).With("body", b).Error("cant unmarshal request body", cslog.Error(err))
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -66,7 +65,7 @@ func (h Handler) renderResponse(ctx context.Context, w http.ResponseWriter, adde
 	w.WriteHeader(http.StatusCreated)
 	err := json.NewEncoder(w).Encode(resp)
 	if err != nil {
-		clog.Ctx(ctx).Error("cant encode json", clog.ErrorMsg(err))
+		cslog.Logger(ctx).Error("cant encode json", cslog.Error(err))
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 }
@@ -81,12 +80,12 @@ func (h Handler) renderError(ctx context.Context, err error, w http.ResponseWrit
 		resp.Error = "alias already exists"
 		err = json.NewEncoder(w).Encode(resp)
 		if err != nil {
-			clog.Ctx(ctx).Error("cant encode json", clog.ErrorMsg(err))
+			cslog.Logger(ctx).Error("cant encode json", cslog.Error(err))
 			w.WriteHeader(http.StatusInternalServerError)
 		}
 
 	default:
-		clog.Ctx(ctx).Error("failed to add link", clog.ErrorMsg(err))
+		cslog.Logger(ctx).Error("failed to add link", cslog.Error(err))
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 }

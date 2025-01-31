@@ -4,7 +4,7 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/ananaslegend/short-link/pkg/clog"
+	"github.com/ananaslegend/short-link/pkg/cslog"
 )
 
 func WithRecover(next http.Handler) http.Handler {
@@ -12,7 +12,7 @@ func WithRecover(next http.Handler) http.Handler {
 		func(w http.ResponseWriter, r *http.Request) {
 			defer func() {
 				if err := recover(); err != nil {
-					clog.Ctx(r.Context()).Error("app in panic!", slog.Any("request:", r))
+					cslog.Logger(r.Context()).Error("app in panic!", slog.Any("request:", r))
 					w.WriteHeader(http.StatusInternalServerError)
 				}
 			}()

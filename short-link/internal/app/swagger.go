@@ -1,12 +1,12 @@
 package app
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
 
-	"github.com/ananaslegend/go-logs/v2"
 	"github.com/go-chi/chi/v5"
 
 	httpSwagger "github.com/swaggo/http-swagger/v2"
@@ -32,15 +32,17 @@ func (a *App) setupSwaggerDocumentationServer() {
 	}
 }
 
-func (a *App) runSwaggerDocumentationServer() error {
-	a.logger.Info("swagger documentation server is started",
+func (a *App) runSwaggerDocumentationServer(ctx context.Context) error {
+	if a.config.Env == config.Prod {
+		return nil
+	}
+
+	a.logger.InfoContext(ctx, "swagger documentation server is started",
 		slog.String("url", fmt.Sprintf("http://localhost:%v/swagger/index.html", a.config.Swagger.Port)),
 	)
 
 	if err := a.swaggerServer.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
-		a.logger.Error("swagger documentation HTTP server", logs.ErrorMsg(err))
-
-		return err
+		return fmt.Errorf("failed start swagger documentation HTTP server, error: %w", err)
 	}
 
 	return nil

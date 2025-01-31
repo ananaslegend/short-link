@@ -6,11 +6,11 @@ import (
 	_ "github.com/ananaslegend/short-link/docs"
 	"github.com/ananaslegend/short-link/internal/middleware"
 	"github.com/ananaslegend/short-link/internal/statistic"
-	"github.com/ananaslegend/short-link/pkg/clog"
+	"github.com/ananaslegend/short-link/pkg/cslog"
 )
 
 func (a *App) setUpRouter(router *routegroup.Bundle) {
-	router.Use(clog.WithCtxLogger(a.logger))
+	router.Use(cslog.Middleware(a.logger))
 	router.Use(middleware.WithRequestID)
 	router.Use(middleware.WithRecover)
 	router.Use(middleware.WithLoggingRequest)

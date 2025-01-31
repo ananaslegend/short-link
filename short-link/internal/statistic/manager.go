@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ananaslegend/go-logs/v2"
+	"github.com/ananaslegend/short-link/pkg/cslog"
 )
 
 // Writer should insert stats to db.
@@ -106,7 +106,7 @@ func (m *Manager) loop() {
 				case errors.Is(err, ErrNoStatToInsert):
 					m.log.Info(ErrNoStatToInsert.Error())
 				default:
-					m.log.Error("cant insert stat rows in db", logs.ErrorMsg(err))
+					m.log.Error("cant insert stat rows in db", cslog.Error(err))
 				}
 			} else {
 				m.log.Debug("statistic flushed")

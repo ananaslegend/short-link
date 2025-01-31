@@ -12,7 +12,7 @@ import (
 //	@title		Short link service
 //	@version	v1.0
 
-// @host		localhost:1323
+// @host		localhost:8080
 // @BasePath	/api/v1
 // @schemes	http https
 func main() {
@@ -24,7 +24,7 @@ func main() {
 	a := app.New(ctx)
 
 	go func() {
-		if err := a.Run(); err != nil {
+		if err := a.Run(ctx); err != nil {
 			cancel()
 		}
 	}()
