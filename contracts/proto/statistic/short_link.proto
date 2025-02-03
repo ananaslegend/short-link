@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+package statistic;
+
+option go_package = "github.com/ananaslegend/short-link/contracts/statistic/v1;statistic_v1";
+
+service ShortLinkStatistic {
+  rpc AddShortLinkEvent (AddShortLinkEventRequest) returns (AddShortLinkEventResponse);
+}
+
+message AddShortLinkEventRequest {
+  repeated ShortLinkEvent statistic_rows = 1;
+}
+
+message ShortLinkEvent {
+  int64 utc_time = 1;
+  string link = 2;
+  string alias = 3;
+  ShortLinkEventType event_type = 4;
+}
+
+enum ShortLinkEventType {
+  VIEW = 0;
+}
+
+message AddShortLinkEventResponse {
+    AddEventStatus status = 1;
+    string message = 2;
+}
+
+enum AddEventStatus {
+  OK = 0;
+  FAILED = 1;
+}
