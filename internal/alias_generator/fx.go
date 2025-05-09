@@ -9,7 +9,7 @@ import (
 
 func Module() fx.Option {
 	return fx.Module(
-		"short-link.internal.alias_generator",
+		"internal.alias_generator",
 
 		fx.Provide(
 			fx.Annotate(service.NewUUIDGenerated, fx.As(new(linkService.AliasGenerator))),

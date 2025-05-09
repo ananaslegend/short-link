@@ -2,12 +2,15 @@ package postgres
 
 import (
 	pgxwrapper "github.com/ananaslegend/short-link/internal/app/pgx_wrapper"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	"go.opentelemetry.io/otel/trace"
 )
 
-type Repository struct {
-	db *pgxwrapper.Wrapper
+type LinkRepository struct {
+	db     *pgxwrapper.Wrapper
+	tracer trace.Tracer
 }
 
-func New(db *pgxwrapper.Wrapper) *Repository {
-	return &Repository{db: db}
+func NewLinkRepository(db *pgxwrapper.Wrapper, traceProvider *sdktrace.TracerProvider) *LinkRepository {
+	return &LinkRepository{db: db, tracer: traceProvider.Tracer("internal.link.repository.postgres.LinkRepository")}
 }

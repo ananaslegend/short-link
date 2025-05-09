@@ -12,7 +12,7 @@ import (
 
 func Module() fx.Option {
 	return fx.Module(
-		"short-link.internal.app.postgres",
+		"internal.app.postgres",
 
 		fx.Provide(func(lc fx.Lifecycle, cfg config.Config, logger zerolog.Logger) *Wrapper {
 			wrapper := &Wrapper{}

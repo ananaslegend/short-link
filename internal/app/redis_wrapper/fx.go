@@ -13,7 +13,7 @@ import (
 
 func Module() fx.Option {
 	return fx.Module(
-		"short-link.internal.app.redis",
+		"internal.app.redis",
 		fx.Provide(
 			func(lc fx.Lifecycle, cfg config.Config, logger zerolog.Logger) *redis.Client {
 				client := redis.NewClient(&redis.Options{

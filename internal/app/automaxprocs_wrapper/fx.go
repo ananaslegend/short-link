@@ -12,7 +12,7 @@ import (
 
 func Module() fx.Option {
 	return fx.Module(
-		"short-link.internal.app.automaxprocs",
+		"internal.app.automaxprocs",
 
 		fx.Invoke(
 			func(lc fx.Lifecycle, logger zerolog.Logger) {

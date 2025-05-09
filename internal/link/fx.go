@@ -19,7 +19,7 @@ const (
 
 func Module() fx.Option {
 	return fx.Module(
-		"short-link.internal.link",
+		"internal.link",
 
 		fx.Provide(
 			fx.Annotate(
@@ -27,14 +27,14 @@ func Module() fx.Option {
 				fx.ResultTags(`name:"get_link_cache_ttl"`),
 			),
 			fx.Annotate(
-				postgres.New, fx.As(new(redis.BaseRepository)),
+				postgres.NewLinkRepository, fx.As(new(redis.BaseRepository)),
 			),
 			fx.Annotate(
-				redis.NewRepositoryDecorator,
+				redis.NewLinkRepositoryDecorator,
 				fx.As(new(service.LinkGetter)), fx.ParamTags("", "", `name:"get_link_cache_ttl"`),
 			),
 
-			fx.Annotate(postgres.New, fx.As(new(service.AliasedLinkInserter))),
+			fx.Annotate(postgres.NewLinkRepository, fx.As(new(service.AliasedLinkInserter))),
 		),
 
 		fx.Provide(
@@ -44,9 +44,9 @@ func Module() fx.Option {
 			fx.Annotate(service.New, fx.As(new(http.LinkInserter))),
 		),
 
-		fx.Provide(http.New),
+		fx.Provide(http.NewHandler),
 
-		fx.Invoke(func(group *echo.Group, h *http.Link) {
+		fx.Invoke(func(group *echo.Group, h *http.LinkHandler) {
 			group.GET("/:alias", h.RedirectHandler)
 			group.POST("", h.SaveLink)
 		}),

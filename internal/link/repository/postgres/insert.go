@@ -11,11 +11,14 @@ import (
 	"github.com/ananaslegend/short-link/internal/link/domain"
 )
 
-func (r Repository) InsertAliasedLink(
+func (r LinkRepository) InsertAliasedLink(
 	ctx context.Context,
 	dto domain.InsertAliasedLink,
 ) (domain.AliasedLink, error) {
-	const op = "short-link.internal.link.postgres.Repository.InsertLink"
+	const op = "internal.link.postgres.Repository.InsertLink"
+
+	ctx, span := r.tracer.Start(ctx, op)
+	defer span.End()
 
 	res := domain.AliasedLink{}
 

@@ -21,6 +21,7 @@ type Config struct {
 	ClickHouse  ClickHouse
 	Swagger     Swagger
 	Redis       Redis
+	Otel        Otel
 
 	FlushStatisticDuration time.Duration
 }
@@ -57,6 +58,11 @@ type Metrics struct {
 	Addr string
 }
 
+type Otel struct {
+	TraceGRCPAddr      string
+	TraceFlushInterval time.Duration
+}
+
 func MustLoadConfig() Config {
 	_ = godotenv.Load(".env")
 
@@ -90,6 +96,9 @@ func MustLoadConfig() Config {
 	cfg.Redis.Password = viper.GetString("REDIS_PASS")
 
 	cfg.FlushStatisticDuration = viper.GetDuration("FLUSH_STATISTIC_DURATION")
+
+	cfg.Otel.TraceGRCPAddr = viper.GetString("OTEL_TRACE_GRCP_ADDR")
+	cfg.Otel.TraceFlushInterval = viper.GetDuration("OTEL_TRACE_FLUSH_INTERVAL")
 
 	if err = validator.New().Struct(cfg); err != nil {
 		panic(fmt.Sprintf("config validation failed: %v", err))

@@ -1,0 +1,94 @@
+services:
+  redis:
+    image: redis:7.2.5-alpine
+    container_name: sl-redis
+    healthcheck:
+      test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    command: ["redis-server", "--requirepass", "pass"]
+    ports:
+      - "6379:6379"
+
+  postgres:
+    image: postgres:16.3-alpine
+    container_name: sl-postgres
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "sl" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    environment:
+      POSTGRES_USER: sl
+      POSTGRES_PASSWORD: sl_password
+      POSTGRES_DB: sl
+    ports:
+      - "5432:5432"
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:24.4-alpine
+    container_name: sl-clickhouse
+    healthcheck:
+      test: [ "CMD", "clickhouse-client", "--query", "SELECT 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    environment:
+      CLICKHOUSE_USER: sl
+      CLICKHOUSE_PASSWORD: sl_password
+      CLICKHOUSE_DB: statistics
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+      - "9999:9999"
+
+  migrate-postgres:
+    image: migrate/migrate:v4.18.3
+    container_name: sl-migrate-postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - >
+        migrate -path /migrations/postgres
+        -database postgres://sl:sl_password@sl-postgres:5432/sl?sslmode=disable
+        up
+    volumes:
+      - ./migrations/postgres:/migrations/postgres
+
+  migrate-clickhouse:
+    image: migrate/migrate:v4.18.3
+    container_name: sl-migrate-clickhouse
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+    volumes:
+      - ./migrations/clickhouse:/migrations:ro
+    command:
+      [
+        "-path",
+        "/migrations",
+        "-database",
+        "clickhouse://sl-clickhouse-server:9000?username=sl&password=sl_password&database=statistics&x-multi-statement=true",
+        "up"
+      ]
+
+  jaeger:
+    image: jaegertracing/jaeger:2.5.0
+    container_name: sl-jaeger
+    restart: always
+    healthcheck:
+      test: [ "CMD", "curl", "-X", "GET", "localhost:14269" ] # jaeger collector health check ping
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    ports:
+      - "16686:16686"  # Jaeger UI
+      - "4317:4317"    # gRPC
+      - "4318:4318"    # HTTP
+      - "5778:5778"    # Health
+      - "9411:9411"    # Zipkin
+    environment:
+      - COLLECTOR_ZIPKIN_HTTP_PORT=9411
