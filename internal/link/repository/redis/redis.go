@@ -3,8 +3,6 @@ package redis
 import (
 	"context"
 	"fmt"
-	sdktrace "go.opentelemetry.io/otel/sdk/trace"
-	"go.opentelemetry.io/otel/trace"
 	"time"
 
 	"github.com/go-redis/redis/v8"
