@@ -18,23 +18,28 @@ type LinkGetter interface {
 
 // RedirectHandler godoc
 //
-//	@Summary		Link to the original link
-//	@Description	Link to the original link by alias
+//	@Summary		LinkHandler to the original link
+//	@Description	LinkHandler to the original link by alias
 //	@Tags			redirect
 //	@Accept			json
 //	@Produce		json
 //	@Param			alias	path		string	true	"Alias"
-//	@Success		302		{string}	string	"Link to the original link"
+//	@Success		302		{string}	string	"LinkHandler to the original link"
 //	@Failure		400		{object}	any
 //	@Failure		404		{object}	any
 //	@Router			/{alias} [get]
-func (h Link) RedirectHandler(c echo.Context) error {
+func (h LinkHandler) RedirectHandler(c echo.Context) error {
+	const op = "internal.link.handler.http.LinkHandler.RedirectHandler"
+
+	ctx, span := h.tracer.Start(c.Request().Context(), op)
+	defer span.End()
+
 	alias, err := h.fetchAlias(c)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 
-	link, err := h.linkGetter.GetLinkByAlias(c.Request().Context(), alias)
+	link, err := h.linkGetter.GetLinkByAlias(ctx, alias)
 	if err != nil {
 		return h.handleError(err)
 	}
@@ -42,7 +47,7 @@ func (h Link) RedirectHandler(c echo.Context) error {
 	return c.Redirect(http.StatusFound, link)
 }
 
-func (h Link) fetchAlias(c echo.Context) (string, error) {
+func (h LinkHandler) fetchAlias(c echo.Context) (string, error) {
 	alias := c.Param("alias")
 
 	if err := validateAlias(alias); err != nil {
@@ -60,7 +65,7 @@ func validateAlias(alias string) error {
 	return nil
 }
 
-func (h Link) handleError(err error) error {
+func (h LinkHandler) handleError(err error) error {
 	switch {
 	case errors.Is(err, service.ErrAliasNotFound):
 		return echo.NewHTTPError(http.StatusNotFound, err)

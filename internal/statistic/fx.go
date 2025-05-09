@@ -10,7 +10,7 @@ import (
 
 func Module() fx.Option {
 	return fx.Module(
-		"short-link.internal.statistic",
+		"internal.statistic",
 
 		fx.Provide(
 			fx.Annotate(clickhouse.NewRepository, fx.As(new(service.RedirectHandler))),

@@ -13,7 +13,7 @@ import (
 
 func Module() fx.Option {
 	return fx.Module(
-		"short-link.internal.app.clickhouse",
+		"internal.app.clickhouse",
 		fx.Provide(func(lc fx.Lifecycle, cfg config.Config, logger zerolog.Logger) driver.Conn {
 			conn, err := clickhouse.Open(&clickhouse.Options{
 				Addr: []string{cfg.ClickHouse.Host},

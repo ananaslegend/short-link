@@ -1,6 +1,6 @@
 ARG CMD_NAME_ARG=api
 
-FROM golang:1.24.2-alpine AS builder
+FROM golang:1.24.3-alpine AS builder
 
 ARG CMD_NAME_ARG
 ENV CMD_NAME=${CMD_NAME_ARG}

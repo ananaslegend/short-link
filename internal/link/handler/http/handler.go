@@ -1,13 +1,25 @@
 package http
 
-type Link struct {
+import (
+	"go.opentelemetry.io/otel/trace"
+
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+)
+
+type LinkHandler struct {
 	linkGetter   LinkGetter
 	linkInserter LinkInserter
+	tracer       trace.Tracer
 }
 
-func New(linkGetter LinkGetter, linkInserter LinkInserter) *Link {
-	return &Link{
+func NewHandler(
+	linkGetter LinkGetter,
+	linkInserter LinkInserter,
+	traceProvider *sdktrace.TracerProvider,
+) *LinkHandler {
+	return &LinkHandler{
 		linkGetter:   linkGetter,
 		linkInserter: linkInserter,
+		tracer:       traceProvider.Tracer("internal.link.handler.http.LinkHandler"),
 	}
 }

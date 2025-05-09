@@ -7,11 +7,11 @@ import (
 	"github.com/ananaslegend/short-link/internal/statistic/domain"
 )
 
-func (r Statistic) AddRedirectEvent(
+func (r StatisticRepository) AddRedirectEvent(
 	ctx context.Context,
 	redirectEvent domain.RedirectEventStatistic,
 ) error {
-	const op = "short-link.internal.statistic.repository.clickhouse.Statistic.AddRedirectEvent"
+	const op = "internal.statistic.repository.clickhouse.StatisticRepository.AddRedirectEvent"
 
 	err := r.conn.AsyncInsert(
 		ctx,

@@ -4,6 +4,9 @@ import (
 	"context"
 
 	"github.com/rs/zerolog"
+	"go.opentelemetry.io/otel/trace"
+
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 
 	"github.com/ananaslegend/short-link/internal/link/service"
 	"github.com/ananaslegend/short-link/internal/statistic/domain"
@@ -16,17 +19,29 @@ type RedirectDecorator struct {
 	base *service.Link
 
 	redirectStatisticProvider RedirectStatisticProvider
+
+	tracer trace.Tracer
 }
 
 func NewRedirectDecorator(
 	base *service.Link,
 	redirectProvider RedirectStatisticProvider,
+	traceProvider *sdktrace.TracerProvider,
 ) *RedirectDecorator {
-	return &RedirectDecorator{base: base, redirectStatisticProvider: redirectProvider}
+	return &RedirectDecorator{
+		base:                      base,
+		redirectStatisticProvider: redirectProvider,
+		tracer: traceProvider.Tracer(
+			"internal.link.service.statistic.RedirectStatisticProvider",
+		),
+	}
 }
 
 func (d RedirectDecorator) GetLinkByAlias(ctx context.Context, alias string) (string, error) {
-	const op = "short-link.internal.link.service.statistic.RedirectDecorator.GetLinkByAlias"
+	const op = "internal.link.service.statistic.RedirectDecorator.GetLinkByAlias"
+
+	ctx, span := d.tracer.Start(ctx, op)
+	defer span.End()
 
 	link, err := d.base.GetLinkByAlias(ctx, alias)
 	if err != nil {

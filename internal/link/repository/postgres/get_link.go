@@ -8,8 +8,11 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-func (r Repository) GetLinkByAlias(ctx context.Context, alias string) (string, error) {
-	const op = "short-link.internal.link.redirect.repository.postgres.Repository.GetLinkByAlias"
+func (r LinkRepository) GetLinkByAlias(ctx context.Context, alias string) (string, error) {
+	const op = "internal.link.redirect.repository.postgres.Repository.GetLinkByAlias"
+
+	ctx, span := r.tracer.Start(ctx, op)
+	defer span.End()
 
 	var link string
 

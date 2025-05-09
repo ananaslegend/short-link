@@ -21,7 +21,10 @@ type AliasedLinkInserter interface {
 }
 
 func (s Link) InsertLink(ctx context.Context, dto domain.InsertLink) (domain.AliasedLink, error) {
-	const op = "short-link.internal.link.service.AliasedLink.InsertLink"
+	const op = "internal.link.service.AliasedLink.InsertLink"
+
+	ctx, span := s.tracer.Start(ctx, op)
+	defer span.End()
 
 	if dto.Alias == nil {
 		if err := s.generateAlias(ctx, &dto); err != nil {
@@ -65,7 +68,7 @@ func mapToInsertAliasedLink(dto domain.InsertLink) domain.InsertAliasedLink {
 }
 
 func handleInsertionError(ctx context.Context, err error, dto domain.InsertLink) error {
-	const op = "short-link.internal.link.service.handleInsertionError"
+	const op = "internal.link.service.handleInsertionError"
 
 	if errors.Is(err, postgres.ErrAliasAlreadyExists) {
 		if dto.Alias == nil {
@@ -94,7 +97,7 @@ func (s Link) InsertAliasedLink(
 	ctx context.Context,
 	dto domain.InsertAliasedLink,
 ) (domain.AliasedLink, error) {
-	const op = "short-link.internal.link.service.AliasedLink.InsertAliasedLink"
+	const op = "internal.link.service.AliasedLink.InsertAliasedLink"
 
 	link, err := s.aliasedLinkInserter.InsertAliasedLink(ctx, dto)
 	if err != nil {
