@@ -29,17 +29,12 @@ type LinkGetter interface {
 //	@Failure		404		{object}	any
 //	@Router			/{alias} [get]
 func (h LinkHandler) RedirectHandler(c echo.Context) error {
-	const op = "internal.link.handler.http.LinkHandler.RedirectHandler"
-
-	ctx, span := h.tracer.Start(c.Request().Context(), op)
-	defer span.End()
-
 	alias, err := h.fetchAlias(c)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 
-	link, err := h.linkGetter.GetLinkByAlias(ctx, alias)
+	link, err := h.linkGetter.GetLinkByAlias(c.Request().Context(), alias)
 	if err != nil {
 		return h.handleError(err)
 	}

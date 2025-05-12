@@ -17,9 +17,6 @@ func (r LinkRepository) InsertAliasedLink(
 ) (domain.AliasedLink, error) {
 	const op = "internal.link.postgres.Repository.InsertLink"
 
-	ctx, span := r.tracer.Start(ctx, op)
-	defer span.End()
-
 	res := domain.AliasedLink{}
 
 	err := r.db.Pool.QueryRow(ctx,

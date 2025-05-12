@@ -23,9 +23,6 @@ type AliasedLinkInserter interface {
 func (s Link) InsertLink(ctx context.Context, dto domain.InsertLink) (domain.AliasedLink, error) {
 	const op = "internal.link.service.AliasedLink.InsertLink"
 
-	ctx, span := s.tracer.Start(ctx, op)
-	defer span.End()
-
 	if dto.Alias == nil {
 		if err := s.generateAlias(ctx, &dto); err != nil {
 			zerolog.Ctx(ctx).

@@ -11,9 +11,6 @@ import (
 func (r LinkRepository) GetLinkByAlias(ctx context.Context, alias string) (string, error) {
 	const op = "internal.link.redirect.repository.postgres.Repository.GetLinkByAlias"
 
-	ctx, span := r.tracer.Start(ctx, op)
-	defer span.End()
-
 	var link string
 
 	err := r.db.Pool.QueryRow(ctx, `select link from link where alias = $1`, alias).Scan(&link)

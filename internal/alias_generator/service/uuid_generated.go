@@ -2,11 +2,12 @@ package service
 
 import (
 	"context"
-	sdktrace "go.opentelemetry.io/otel/sdk/trace"
-	"go.opentelemetry.io/otel/trace"
 	"strings"
 
 	"github.com/google/uuid"
+	"go.opentelemetry.io/otel/trace"
+
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 
 	"github.com/ananaslegend/short-link/internal/alias_generator/domain"
 )

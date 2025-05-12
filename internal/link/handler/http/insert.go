@@ -15,11 +15,6 @@ type LinkInserter interface {
 }
 
 func (h LinkHandler) SaveLink(c echo.Context) error {
-	const op = "internal.link.handler.http.LinkHandler.SaveLink"
-
-	ctx, span := h.tracer.Start(c.Request().Context(), op)
-	defer span.End()
-
 	var req Request
 	if err := c.Bind(&req); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
@@ -29,7 +24,7 @@ func (h LinkHandler) SaveLink(c echo.Context) error {
 		return err
 	}
 
-	insertLink, err := h.linkInserter.InsertLink(ctx, mapInsertRequest(req))
+	insertLink, err := h.linkInserter.InsertLink(c.Request().Context(), mapInsertRequest(req))
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError)
 	}

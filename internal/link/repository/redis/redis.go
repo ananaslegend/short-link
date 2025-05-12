@@ -7,9 +7,6 @@ import (
 
 	"github.com/go-redis/redis/v8"
 	"github.com/rs/zerolog"
-	"go.opentelemetry.io/otel/trace"
-
-	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 )
 
 type BaseRepository interface {
@@ -20,28 +17,22 @@ type LinkRepositoryDecorator struct {
 	base   BaseRepository
 	client *redis.Client
 	ttl    time.Duration
-	tracer trace.Tracer
 }
 
 func NewLinkRepositoryDecorator(
 	repo BaseRepository,
 	client *redis.Client,
 	ttl time.Duration,
-	traceProvider *sdktrace.TracerProvider,
 ) *LinkRepositoryDecorator {
 	return &LinkRepositoryDecorator{
 		base:   repo,
 		client: client,
 		ttl:    ttl,
-		tracer: traceProvider.Tracer("internal.link.repository.redis.LinkRepository"),
 	}
 }
 
 func (r LinkRepositoryDecorator) GetLinkByAlias(ctx context.Context, alias string) (string, error) {
 	const op = "internal.link.repository.redis.LinkRepositoryDecorator.GetLinkByAlias"
-
-	ctx, span := r.tracer.Start(ctx, op)
-	defer span.End()
 
 	link, err := r.client.Get(ctx, alias).Result()
 	if err == nil {

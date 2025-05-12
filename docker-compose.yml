@@ -71,7 +71,7 @@ services:
         "-path",
         "/migrations",
         "-database",
-        "clickhouse://sl-clickhouse-server:9000?username=sl&password=sl_password&database=statistics&x-multi-statement=true",
+        "clickhouse://sl-clickhouse:9000?username=sl&password=sl_password&database=statistics&x-multi-statement=true",
         "up"
       ]
 
