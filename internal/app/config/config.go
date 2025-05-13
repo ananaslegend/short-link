@@ -59,8 +59,9 @@ type Metrics struct {
 }
 
 type Otel struct {
-	TraceGRCPAddr      string
-	TraceFlushInterval time.Duration
+	TraceGRCPAddr       string
+	TraceFlushInterval  time.Duration
+	MetricFlushInterval time.Duration
 }
 
 func MustLoadConfig() Config {
@@ -99,6 +100,7 @@ func MustLoadConfig() Config {
 
 	cfg.Otel.TraceGRCPAddr = viper.GetString("OTEL_TRACE_GRCP_ADDR")
 	cfg.Otel.TraceFlushInterval = viper.GetDuration("OTEL_TRACE_FLUSH_INTERVAL")
+	cfg.Otel.MetricFlushInterval = viper.GetDuration("OTEL_METRIC_FLUSH_INTERVAL")
 
 	if err = validator.New().Struct(cfg); err != nil {
 		panic(fmt.Sprintf("config validation failed: %v", err))

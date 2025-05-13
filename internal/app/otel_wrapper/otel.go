@@ -3,7 +3,6 @@ package otelwrapper
 
 import (
 	"context"
-
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/exporters/stdout/stdoutmetric"
@@ -73,7 +72,7 @@ func NewMetricProvider(
 		sdkmetric.WithReader(
 			sdkmetric.NewPeriodicReader(
 				exporter,
-				sdkmetric.WithInterval(cfg.Otel.TraceFlushInterval),
+				sdkmetric.WithInterval(cfg.Otel.MetricFlushInterval),
 			),
 		),
 	)

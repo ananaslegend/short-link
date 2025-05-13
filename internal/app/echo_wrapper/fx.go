@@ -1,6 +1,9 @@
 package echowraper
 
-import "go.uber.org/fx"
+import (
+	"github.com/ananaslegend/short-link/internal/app/echo_wrapper/mw"
+	"go.uber.org/fx"
+)
 
 func Module() fx.Option {
 	return fx.Module(
@@ -9,7 +12,7 @@ func Module() fx.Option {
 		fx.Provide(NewEchoAPIGroup),
 
 		fx.Invoke(SetupValidator),
-		fx.Invoke(SetupMiddleware),
+		fx.Invoke(mw.SetupMiddleware),
 		fx.Invoke(RunEchoServer),
 	)
 }
