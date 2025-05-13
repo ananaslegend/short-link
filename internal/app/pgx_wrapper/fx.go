@@ -21,10 +21,6 @@ func Module() fx.Option {
 					logger.Fatal().Err(err).Msg("failed to connect to db")
 				}
 
-				if err = pgpool.Ping(ctx); err != nil {
-					logger.Fatal().Err(err).Msg("failed to ping db")
-				}
-
 				lc.Append(fx.Hook{
 					OnStart: func(ctx context.Context) error {
 						return pgpool.Ping(ctx)
