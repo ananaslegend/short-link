@@ -51,16 +51,18 @@ func (d RedirectDecorator) GetLinkByAlias(ctx context.Context, alias string) (st
 		Link:  link,
 	}
 
-	if err = d.redirectStatisticProvider.AddRedirectEvent(ctx, event); err != nil {
-		zerolog.Ctx(ctx).
-			Error().
-			Err(err).
-			Str("op", op).
-			Any("event", event).
-			Msg("failed to add redirect event")
+	ctx = context.WithoutCancel(ctx)
 
-		return link, nil
-	}
+	go func() {
+		if err = d.redirectStatisticProvider.AddRedirectEvent(ctx, event); err != nil {
+			zerolog.Ctx(ctx).
+				Error().
+				Err(err).
+				Str("op", op).
+				Any("event", event).
+				Msg("failed to add redirect event")
+		}
+	}()
 
 	return link, nil
 }
