@@ -3,6 +3,7 @@ package tracer
 import (
 	"context"
 
+	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
 
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
@@ -36,6 +37,7 @@ func (o OtelDecorator) GetLinkByAlias(ctx context.Context, alias string) (string
 
 	link, err := o.base.GetLinkByAlias(ctx, alias)
 	if err != nil {
+		span.SetStatus(codes.Error, err.Error())
 		span.RecordError(err)
 
 		return "", err
@@ -56,6 +58,7 @@ func (o OtelDecorator) InsertAliasedLink(
 
 	res, err := o.base.InsertAliasedLink(ctx, dto)
 	if err != nil {
+		span.SetStatus(codes.Error, err.Error())
 		span.RecordError(err)
 
 		return domain.AliasedLink{}, err

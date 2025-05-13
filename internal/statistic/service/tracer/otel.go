@@ -3,6 +3,7 @@ package tracer
 import (
 	"context"
 
+	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
 
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
@@ -36,6 +37,7 @@ func (o OtelDecorator) AddRedirectEvent(
 
 	err := o.BaseService.AddRedirectEvent(ctx, redirectEvent)
 	if err != nil {
+		span.SetStatus(codes.Error, err.Error())
 		span.RecordError(err)
 
 		return err
