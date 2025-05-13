@@ -19,7 +19,7 @@ func (r LinkRepository) InsertAliasedLink(
 
 	res := domain.AliasedLink{}
 
-	err := r.db.Pool.QueryRow(ctx,
+	err := r.db.QueryRow(ctx,
 		`insert into link (alias, link) values ($1,$2) returning id, alias, link;`,
 		dto.Alias, dto.Link).
 		Scan(&res.ID, &res.Alias, &res.Link)

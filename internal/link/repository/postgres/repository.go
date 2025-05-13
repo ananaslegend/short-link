@@ -1,17 +1,13 @@
 package postgres
 
 import (
-	pgxwrapper "github.com/ananaslegend/short-link/internal/app/pgx_wrapper"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type LinkRepository struct {
-	db *pgxwrapper.Wrapper
+	db *pgxpool.Pool
 }
 
-func NewLinkRepository(
-	db *pgxwrapper.Wrapper,
-) *LinkRepository {
-	return &LinkRepository{
-		db: db,
-	}
+func NewLinkRepository(db *pgxpool.Pool) *LinkRepository {
+	return &LinkRepository{db: db}
 }

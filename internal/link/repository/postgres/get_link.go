@@ -13,7 +13,7 @@ func (r LinkRepository) GetLinkByAlias(ctx context.Context, alias string) (strin
 
 	var link string
 
-	err := r.db.Pool.QueryRow(ctx, `select link from link where alias = $1`, alias).Scan(&link)
+	err := r.db.QueryRow(ctx, `select link from link where alias = $1`, alias).Scan(&link)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return "", ErrAliasNtFound

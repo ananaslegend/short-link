@@ -14,38 +14,30 @@ func Module() fx.Option {
 	return fx.Module(
 		"internal.app.postgres",
 
-		fx.Provide(func(lc fx.Lifecycle, cfg config.Config, logger zerolog.Logger) *Wrapper {
-			wrapper := &Wrapper{}
+		fx.Provide(
+			func(ctx context.Context, lc fx.Lifecycle, cfg config.Config, logger zerolog.Logger) *pgxpool.Pool {
+				pgpool, err := pgxpool.New(ctx, cfg.DbConn)
+				if err != nil {
+					logger.Fatal().Err(err).Msg("failed to connect to db")
+				}
 
-			lc.Append(fx.Hook{
-				OnStart: func(ctx context.Context) error {
-					pgpool, err := pgxpool.New(ctx, cfg.DbConn)
-					if err != nil {
-						logger.Error().Err(err).Msg("failed to connect to db")
+				if err = pgpool.Ping(ctx); err != nil {
+					logger.Fatal().Err(err).Msg("failed to ping db")
+				}
 
-						return err
-					}
+				lc.Append(fx.Hook{
+					OnStart: func(ctx context.Context) error {
+						return pgpool.Ping(ctx)
+					},
+					OnStop: func(ctx context.Context) error {
+						pgpool.Close()
 
-					if err = pgpool.Ping(ctx); err != nil {
-						logger.Error().Err(err).Msg("failed to ping db")
+						return nil
+					},
+				})
 
-						return err
-					}
-
-					wrapper.Pool = pgpool
-
-					return nil
-				},
-				OnStop: func(ctx context.Context) error {
-					if wrapper.Pool != nil {
-						wrapper.Pool.Close()
-					}
-
-					return nil
-				},
-			})
-
-			return wrapper
-		}),
+				return pgpool
+			},
+		),
 	)
 }
