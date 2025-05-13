@@ -8,6 +8,7 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/github.com/labstack/echo/otelecho"
 	"go.uber.org/fx"
 
+	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	sdkresource "go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 
@@ -30,13 +31,24 @@ func Module() fx.Option {
 		fx.Provide(func(ctx context.Context, cfg config.Config) sdktrace.SpanExporter {
 			spanExporter, err := NewSpanExporter(ctx, cfg)
 			if err != nil {
-				panic(fmt.Sprintf("failed to initialize otel stdout trace exporter: %v", err))
+				panic(fmt.Sprintf("failed to initialize otel trace exporter: %v", err))
 			}
 
 			return spanExporter
 		}),
 
 		fx.Provide(NewTraceProvider),
+
+		fx.Provide(func(ctx context.Context, cfg config.Config) sdkmetric.Exporter {
+			metricExporter, err := NewMetricExporter(ctx, cfg)
+			if err != nil {
+				panic(fmt.Sprintf("failed to initialize otel metric exporter: %v", err))
+			}
+
+			return metricExporter
+		}),
+
+		fx.Provide(NewMetricProvider),
 
 		fx.Invoke(func(e *echo.Echo, traceProvider *sdktrace.TracerProvider) {
 			e.Use(otelecho.Middleware("http-request", otelecho.WithTracerProvider(traceProvider)))

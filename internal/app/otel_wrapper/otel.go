@@ -6,8 +6,10 @@ import (
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
+	"go.opentelemetry.io/otel/exporters/stdout/stdoutmetric"
 	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
 
+	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	sdkresource "go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.30.0"
@@ -55,4 +57,28 @@ func NewTraceProvider(
 	otel.SetTracerProvider(tracerProvider)
 
 	return tracerProvider
+}
+
+func NewMetricExporter(ctx context.Context, cfg config.Config) (sdkmetric.Exporter, error) {
+	return stdoutmetric.New()
+}
+
+func NewMetricProvider(
+	cfg config.Config,
+	resource *sdkresource.Resource,
+	exporter sdkmetric.Exporter,
+) (*sdkmetric.MeterProvider, error) {
+	meterProvider := sdkmetric.NewMeterProvider(
+		sdkmetric.WithResource(resource),
+		sdkmetric.WithReader(
+			sdkmetric.NewPeriodicReader(
+				exporter,
+				sdkmetric.WithInterval(cfg.Otel.TraceFlushInterval),
+			),
+		),
+	)
+
+	otel.SetMeterProvider(meterProvider)
+
+	return meterProvider, nil
 }
