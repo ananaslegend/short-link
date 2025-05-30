@@ -1,11 +1,13 @@
 package mw
 
 import (
+	"time"
+
 	"github.com/labstack/echo/v4"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
+
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
-	"time"
 )
 
 func MetricsMiddleware(metricProvider *sdkmetric.MeterProvider) echo.MiddlewareFunc {

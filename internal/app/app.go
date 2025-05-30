@@ -42,8 +42,10 @@ func New() *fx.App {
 
 		fx.Provide(config.MustLoadConfig),
 
-		fx.Provide(zerologwrapper.SetupZerolog),
-		fx.WithLogger(zerologwrapper.WithZerologFx),
+		zerologwrapper.Module(),
+
+		// fx.Provide(zerologwrapper.SetupZerolog),
+		// fx.WithLogger(zerologwrapper.WithZerologFx),
 
 		automaxprocswrapper.Module(),
 

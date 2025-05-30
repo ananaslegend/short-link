@@ -1,0 +1,50 @@
+// Discover only containers with label logging=promtail
+discovery.docker "linux" {
+  host = "unix:///var/run/docker.sock"
+}
+
+// Relabel the container name into a label called service_name
+discovery.relabel "logs_integrations_docker" {
+  targets = discovery.docker.linux.targets
+
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex         = "/(.*)"
+    target_label  = "service_name"
+  }
+}
+
+// Parse JSON logs and extract trace_id and span_id as labels
+loki.process "parse_tracing" {
+  forward_to = [loki.write.local.receiver]
+
+  stage.json {
+    expressions = {
+      trace_id = "trace_id",
+      span_id  = "span_id",
+    }
+  }
+
+  stage.labels {
+    values = {
+        trace_id = "",
+        span_id  = "",
+    }
+  }
+}
+
+// Read logs from Docker containers discovered earlier
+loki.source.docker "default" {
+  host          = "unix:///var/run/docker.sock"
+  targets       = discovery.relabel.logs_integrations_docker.output
+  labels        = { platform = "docker" }
+  relabel_rules = discovery.relabel.logs_integrations_docker.rules
+  forward_to    = [loki.process.parse_tracing.receiver]
+}
+
+// Send processed logs to Loki
+loki.write "local" {
+  endpoint {
+    url = "http://loki:3100/loki/api/v1/push"
+  }
+}

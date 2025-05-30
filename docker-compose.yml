@@ -1,7 +1,7 @@
 services:
   redis:
     image: redis:7.2.5-alpine
-    container_name: sl-redis
+    container_name: redis
     healthcheck:
       test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
       interval: 10s
@@ -13,7 +13,7 @@ services:
 
   postgres:
     image: postgres:16.3-alpine
-    container_name: sl-postgres
+    container_name: postgres
     healthcheck:
       test: [ "CMD", "pg_isready", "-U", "sl" ]
       interval: 10s
@@ -28,7 +28,7 @@ services:
 
   clickhouse:
     image: clickhouse/clickhouse-server:24.4-alpine
-    container_name: sl-clickhouse
+    container_name: clickhouse
     healthcheck:
       test: [ "CMD", "clickhouse-client", "--query", "SELECT 1" ]
       interval: 10s
@@ -45,7 +45,7 @@ services:
 
   migrate-postgres:
     image: migrate/migrate:v4.18.3
-    container_name: sl-migrate-postgres
+    container_name: migrate-postgres
     depends_on:
       postgres:
         condition: service_healthy
@@ -53,14 +53,14 @@ services:
     command:
       - >
         migrate -path /migrations/postgres
-        -database postgres://sl:sl_password@sl-postgres:5432/sl?sslmode=disable
+        -database postgres://sl:sl_password@postgres:5432/sl?sslmode=disable
         up
     volumes:
       - ./migrations/postgres:/migrations/postgres
 
   migrate-clickhouse:
     image: migrate/migrate:v4.18.3
-    container_name: sl-migrate-clickhouse
+    container_name: migrate-clickhouse
     depends_on:
       clickhouse:
         condition: service_healthy
@@ -71,24 +71,113 @@ services:
         "-path",
         "/migrations",
         "-database",
-        "clickhouse://sl-clickhouse:9000?username=sl&password=sl_password&database=statistics&x-multi-statement=true",
+        "clickhouse://clickhouse:9000?username=sl&password=sl_password&database=statistics&x-multi-statement=true",
         "up"
       ]
 
-  jaeger:
-    image: jaegertracing/jaeger:2.5.0
-    container_name: sl-jaeger
-    restart: always
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    container_name: otel-collector
+    command: [ "--config=/etc/otel-collector-config.yaml" ]
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    ports:
+      - "4317:4317" # gRPC
+      - "4318:4318" # HTTP
+      - "8889:8889" # Prometheus exporter
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-storage:/var/lib/grafana
+    restart: unless-stopped
+
+  loki:
+    image: grafana/loki:2.9.5
+    container_name: loki
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./loki-config.yml:/etc/loki/config.yml:ro
+      - loki_data:/loki
+    command: -config.file=/etc/loki/config.yml
+    restart: unless-stopped
     healthcheck:
-      test: [ "CMD", "curl", "-X", "GET", "localhost:14269" ] # jaeger collector health check ping
+      test: [ "CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3100/ready || exit 1" ]
       interval: 10s
       timeout: 5s
-      retries: 10
+      retries: 3
+
+  alloy:
+    image: grafana/alloy:latest
+    container_name: alloy
+    volumes:
+      - ./alloy-config.river:/etc/alloy/config.river:ro     # Файл конфігурації Alloy
+      - /var/run/docker.sock:/var/run/docker.sock:ro    # Для збору логів Docker
+      - ./tmp:/mnt/logs:ro                              # Для логів вашого локального Go-додатку (шлях на хості /tmp/app.log -> /mnt/logs/app.log в контейнері)
+      - alloy_data:/var/lib/alloy/data                  # Для зберігання даних Alloy (WAL, позиції файлів)
+    command: run /etc/alloy/config.river                  # Команда запуску Alloy
+    # Опціонально: відкрийте порт для UI Alloy (для налагодження)
     ports:
-      - "16686:16686"  # Jaeger UI
-      - "4317:4317"    # gRPC
-      - "4318:4318"    # HTTP
-      - "5778:5778"    # Health
-      - "9411:9411"    # Zipkin
+      - "12345:12345"
     environment:
-      - COLLECTOR_ZIPKIN_HTTP_PORT=9411
+     - ALLOY_SERVER_HTTP_LISTEN_ADDR=0.0.0.0:12345 # Для доступу до UI Alloy
+    restart: unless-stopped
+    depends_on:
+      loki:
+        condition: service_healthy # Або service_started
+
+  shortlink:
+    build:
+      context: . # Вказує, що Dockerfile знаходиться в поточній директорії
+      args:
+        CMD_NAME_ARG: api # Значення за замовчуванням для CMD_NAME_ARG
+    container_name: app
+    ports:
+      - "8080:8080"
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      clickhouse:
+        condition: service_healthy
+      migrate-postgres: # Додано залежність від міграцій
+        condition: service_completed_successfully
+      migrate-clickhouse: # Додано залежність від міграцій
+        condition: service_completed_successfully
+      otel-collector: # Додано залежність від otel-collector
+        condition: service_started # Або service_healthy, якщо otel-collector має healthcheck
+    restart: unless-stopped
+
+  tempo:
+    image: grafana/tempo:2.4.1
+    container_name: tempo
+    command: [ "-config.file=/etc/tempo.yaml" ]
+    ports:
+      - "3200:3200" # HTTP API
+      - "4317"      # gRPC (можна прибрати, якщо не використовуєш напряму)
+      - "4318"      # HTTP (можна прибрати, якщо не використовуєш напряму)
+    volumes:
+      - ./tempo-config.yaml:/etc/tempo.yaml
+      - tempo_data:/tmp/tempo
+    restart: unless-stopped
+
+volumes:
+  grafana-storage:
+  alloy_data:
+  loki_data:
+  tempo_data:

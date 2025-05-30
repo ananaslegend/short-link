@@ -46,16 +46,12 @@ func StartEchoServer(
 			}
 		}()
 
-		logger.Info().Msg("http server started")
-
 		return nil
 	}
 }
 
 func StopEchoServer(e *echo.Echo, logger zerolog.Logger) func(ctx context.Context) error {
 	return func(ctx context.Context) error {
-		logger.Info().Msg("http server stopping")
-
 		return e.Shutdown(ctx)
 	}
 }

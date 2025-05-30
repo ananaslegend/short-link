@@ -26,7 +26,7 @@ func (r LinkRepository) InsertAliasedLink(
 	if err != nil {
 		if pgxErr := (&pgconn.PgError{}); errors.As(err, &pgxErr) &&
 			pgxErr.Code == pgerrcode.UniqueViolation {
-			return res, ErrAliasNtFound
+			return res, ErrAliasAlreadyExists
 		}
 
 		return domain.AliasedLink{}, fmt.Errorf("%s: %w", op, err)

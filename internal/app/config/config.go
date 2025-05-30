@@ -2,7 +2,6 @@ package config
 
 import (
 	"fmt"
-	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -17,7 +16,6 @@ type Config struct {
 	Environment Env    `validate:"required,oneof=prod dev local"`
 	DbConn      string
 	HttpServer  HttpServer
-	Metrics     Metrics
 	ClickHouse  ClickHouse
 	Swagger     Swagger
 	Redis       Redis
@@ -54,13 +52,10 @@ type ClickHouse struct {
 	Pass string `validate:"required"`
 }
 
-type Metrics struct {
-	Addr string
-}
-
 type Otel struct {
 	TraceGRCPAddr       string
 	TraceFlushInterval  time.Duration
+	MeterGRCPAddr       string
 	MetricFlushInterval time.Duration
 }
 
@@ -78,8 +73,6 @@ func MustLoadConfig() Config {
 	cfg.HttpServer.Port = viper.GetString("HTTP_SERVER_PORT")
 
 	cfg.DbConn = viper.GetString("DB_CONN")
-
-	cfg.Metrics.Addr = os.Getenv("METRICS_ADDR")
 
 	cfg.ClickHouse.Host = viper.GetString("CLICKHOUSE_HOST")
 	cfg.ClickHouse.Db = viper.GetString("CLICKHOUSE_DATABASE")
@@ -100,6 +93,8 @@ func MustLoadConfig() Config {
 
 	cfg.Otel.TraceGRCPAddr = viper.GetString("OTEL_TRACE_GRCP_ADDR")
 	cfg.Otel.TraceFlushInterval = viper.GetDuration("OTEL_TRACE_FLUSH_INTERVAL")
+
+	cfg.Otel.MeterGRCPAddr = viper.GetString("OTEL_METRIC_GRCP_ADDR")
 	cfg.Otel.MetricFlushInterval = viper.GetDuration("OTEL_METRIC_FLUSH_INTERVAL")
 
 	if err = validator.New().Struct(cfg); err != nil {

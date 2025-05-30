@@ -1,0 +1,34 @@
+auth_enabled: false
+
+server:
+  http_listen_port: 3100
+  grpc_listen_port: 9096
+
+common:
+  path_prefix: /loki # Важливо, якщо ви використовуєте Loki за проксі, але тут це для консистентності
+  storage:
+    filesystem:
+      chunks_directory: /loki/chunks
+      rules_directory: /loki/rules
+  replication_factor: 1
+  ring:
+    kvstore:
+      store: inmemory # Для локальної розробки
+
+# Схема для зберігання логів
+schema_config:
+  configs:
+    - from: 2022-01-01 # Дата в минулому
+      store: boltdb-shipper
+      object_store: filesystem
+      schema: v13 # Або v12, v13 для новіших версій Loki
+      index:
+        prefix: index_
+        period: 24h
+
+# Ліміти для локального середовища, можна збільшити за потреби
+limits_config:
+  enforce_metric_name: false
+  reject_old_samples: true
+  reject_old_samples_max_age: 168h # 7 днів
+  volume_enabled: true

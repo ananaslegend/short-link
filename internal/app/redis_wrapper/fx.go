@@ -30,8 +30,6 @@ func Module() fx.Option {
 							return fmt.Errorf("failed to ping redis: %w", err)
 						}
 
-						logger.Info().Msg("redis client started")
-
 						return nil
 					},
 					OnStop: func(ctx context.Context) error {
@@ -40,8 +38,6 @@ func Module() fx.Option {
 
 							return fmt.Errorf("failed to close redis client: %w", err)
 						}
-
-						logger.Info().Msg("redis client closed")
 
 						return nil
 					},

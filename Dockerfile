@@ -22,6 +22,7 @@ ARG CMD_NAME_ARG
 ENV CMD_NAME=${CMD_NAME_ARG}
 
 COPY --from=builder /bin/${CMD_NAME} /app
+COPY .env .
 
 RUN chmod +x /app
 

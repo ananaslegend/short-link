@@ -4,12 +4,12 @@ CMD_NAME_ARG=api
 
 REDIS_PORT=6379
 REDIS_IMAGE=redis:7.2.5-alpine
-REDIS_CONTAINER_NAME=sl-redis
+REDIS_CONTAINER_NAME=redis
 REDIS_PASSWORD=pass
 
 POSTGRES_PORT=5432
 POSTGRES_IMAGE=postgres:16.3-alpine
-POSTGRES_CONTAINER_NAME=sl-postgres
+POSTGRES_CONTAINER_NAME=postgres
 POSTGRES_USER=sl
 POSTGRES_PASSWORD=sl_password
 POSTGRES_DB=sl
@@ -23,7 +23,7 @@ CLICKHOUSE_USER=sl
 CLICKHOUSE_PASSWORD=sl_password
 CLICKHOUSE_DATABASE=statistics
 CLICKHOUSE_IMAGE=clickhouse/clickhouse-server:24.4-alpine
-CLICKHOUSE_CONTAINER_NAME := sl-clickhouse-server
+CLICKHOUSE_CONTAINER_NAME := clickhouse-server
 CLICKHOUSE_MIGRATION_PATH=./migrations/clickhouse
 CLICKHOUSE_MIGRATION_DRIVER=clickhouse
 
@@ -61,7 +61,7 @@ build:
 .PHONY: run
 run:
 	@echo $(GREEN)"[RUN] running application..."$(NO_COLOR)
-	@go run $(MAIN_PATH)
+	@go run $(MAIN_PATH) > tmp/app.log 2>&1
 
 .PHONY: test
 test:

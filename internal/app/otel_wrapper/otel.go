@@ -3,7 +3,9 @@ package otelwrapper
 
 import (
 	"context"
+
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/exporters/stdout/stdoutmetric"
 	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
@@ -31,14 +33,14 @@ func NewResource(ctx context.Context, cfg config.Config) (*sdkresource.Resource,
 }
 
 func NewSpanExporter(ctx context.Context, cfg config.Config) (sdktrace.SpanExporter, error) {
-	if cfg.Otel.TraceGRCPAddr != "" {
-		return otlptracegrpc.New(ctx,
-			otlptracegrpc.WithInsecure(),
-			otlptracegrpc.WithEndpoint(cfg.Otel.TraceGRCPAddr),
-		)
+	if cfg.Otel.TraceGRCPAddr == "" {
+		return stdouttrace.New(stdouttrace.WithPrettyPrint())
 	}
 
-	return stdouttrace.New(stdouttrace.WithPrettyPrint())
+	return otlptracegrpc.New(ctx,
+		otlptracegrpc.WithInsecure(),
+		otlptracegrpc.WithEndpoint(cfg.Otel.TraceGRCPAddr),
+	)
 }
 
 func NewTraceProvider(
@@ -59,7 +61,14 @@ func NewTraceProvider(
 }
 
 func NewMetricExporter(ctx context.Context, cfg config.Config) (sdkmetric.Exporter, error) {
-	return stdoutmetric.New()
+	if cfg.Otel.MeterGRCPAddr == "" {
+		return stdoutmetric.New(stdoutmetric.WithPrettyPrint())
+	}
+
+	return otlpmetricgrpc.New(ctx,
+		otlpmetricgrpc.WithInsecure(),
+		otlpmetricgrpc.WithEndpoint(cfg.Otel.MeterGRCPAddr),
+	)
 }
 
 func NewMetricProvider(

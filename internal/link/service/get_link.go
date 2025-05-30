@@ -2,9 +2,12 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/rs/zerolog"
+
+	"github.com/ananaslegend/short-link/internal/link/repository/postgres"
 )
 
 type LinkGetter interface {
@@ -16,6 +19,10 @@ func (s Link) GetLinkByAlias(ctx context.Context, alias string) (string, error) 
 
 	link, err := s.linkGetter.GetLinkByAlias(ctx, alias)
 	if err != nil {
+		if errors.Is(err, postgres.ErrAliasNotFound) {
+			return "", ErrAliasNotFound
+		}
+
 		zerolog.Ctx(ctx).
 			Error().
 			Str("op", op).

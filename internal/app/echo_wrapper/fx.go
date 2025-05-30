@@ -1,8 +1,9 @@
 package echowraper
 
 import (
-	"github.com/ananaslegend/short-link/internal/app/echo_wrapper/mw"
 	"go.uber.org/fx"
+
+	"github.com/ananaslegend/short-link/internal/app/echo_wrapper/mw"
 )
 
 func Module() fx.Option {
