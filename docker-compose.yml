@@ -140,41 +140,41 @@ services:
       loki:
         condition: service_healthy # Або service_started
 
-  shortlink:
-    build:
-      context: . # Вказує, що Dockerfile знаходиться в поточній директорії
-      args:
-        CMD_NAME_ARG: api # Значення за замовчуванням для CMD_NAME_ARG
-    container_name: app
-    ports:
-      - "8080:8080"
-    depends_on:
-      redis:
-        condition: service_healthy
-      postgres:
-        condition: service_healthy
-      clickhouse:
-        condition: service_healthy
-      migrate-postgres: # Додано залежність від міграцій
-        condition: service_completed_successfully
-      migrate-clickhouse: # Додано залежність від міграцій
-        condition: service_completed_successfully
-      otel-collector: # Додано залежність від otel-collector
-        condition: service_started # Або service_healthy, якщо otel-collector має healthcheck
-    restart: unless-stopped
-
   tempo:
     image: grafana/tempo:2.4.1
     container_name: tempo
     command: [ "-config.file=/etc/tempo.yaml" ]
     ports:
       - "3200:3200" # HTTP API
-      - "4317"      # gRPC (можна прибрати, якщо не використовуєш напряму)
-      - "4318"      # HTTP (можна прибрати, якщо не використовуєш напряму)
+      - "4317"      # gRPC
+      - "4318"      # HTTP
     volumes:
       - ./tempo-config.yaml:/etc/tempo.yaml
       - tempo_data:/tmp/tempo
     restart: unless-stopped
+
+#  shortlink:
+#    build:
+#      context: . # Вказує, що Dockerfile знаходиться в поточній директорії
+#      args:
+#        CMD_NAME_ARG: api # Значення за замовчуванням для CMD_NAME_ARG
+#    container_name: app
+#    ports:
+#      - "8080:8080"
+#    depends_on:
+#      redis:
+#        condition: service_healthy
+#      postgres:
+#        condition: service_healthy
+#      clickhouse:
+#        condition: service_healthy
+#      migrate-postgres: # Додано залежність від міграцій
+#        condition: service_completed_successfully
+#      migrate-clickhouse: # Додано залежність від міграцій
+#        condition: service_completed_successfully
+#      otel-collector: # Додано залежність від otel-collector
+#        condition: service_started # Або service_healthy, якщо otel-collector має healthcheck
+#    restart: unless-stopped
 
 volumes:
   grafana-storage:

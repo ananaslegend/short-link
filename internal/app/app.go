@@ -8,6 +8,7 @@ import (
 	"go.uber.org/fx"
 
 	aliasgenerator "github.com/ananaslegend/short-link/internal/alias_generator"
+	"github.com/ananaslegend/short-link/internal/app/api"
 	automaxprocswrapper "github.com/ananaslegend/short-link/internal/app/automaxprocs_wrapper"
 	clickhousewrapper "github.com/ananaslegend/short-link/internal/app/clickhouse_wrapper"
 	"github.com/ananaslegend/short-link/internal/app/config"
@@ -44,9 +45,6 @@ func New() *fx.App {
 
 		zerologwrapper.Module(),
 
-		// fx.Provide(zerologwrapper.SetupZerolog),
-		// fx.WithLogger(zerologwrapper.WithZerologFx),
-
 		automaxprocswrapper.Module(),
 
 		otelwrapper.Module(),
@@ -61,5 +59,7 @@ func New() *fx.App {
 
 		aliasgenerator.Module(),
 		link.Module(),
+
+		api.Module(),
 	)
 }
