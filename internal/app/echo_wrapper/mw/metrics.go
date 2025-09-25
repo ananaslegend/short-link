@@ -1,6 +1,7 @@
 package mw
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -55,6 +56,7 @@ func REDMetricsMiddleware(metricProvider *sdkmetric.MeterProvider) echo.Middlewa
 				attribute.String("http.route", route),
 				attribute.Int("http.status_code", status),
 				attribute.Float64("http.duration", duration),
+				attribute.String("trace_id", fmt.Sprintf("%s", c.Get(traceIDKey))),
 			}
 
 			requestCounter.Add(c.Request().Context(), 1, metric.WithAttributes(attrs...))

@@ -10,8 +10,12 @@ import (
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 )
 
+const (
+	traceIDKey = "trace_id"
+)
+
 func TracerMiddleware(traceProvider *sdktrace.TracerProvider) echo.MiddlewareFunc {
-	return otelecho.Middleware("http-request", otelecho.WithTracerProvider(traceProvider))
+	return otelecho.Middleware("short-link", otelecho.WithTracerProvider(traceProvider))
 }
 
 func TracePropagationMiddleware(propagator propagation.TextMapPropagator) echo.MiddlewareFunc {
@@ -35,13 +39,16 @@ func LogTraceIDFromContextMiddleware() echo.MiddlewareFunc {
 			span := trace.SpanFromContext(c.Request().Context())
 
 			if span != nil && span.SpanContext().IsValid() {
+				traceID := span.SpanContext().TraceID().String()
+
 				loggingTraceIdCtx := zerolog.Ctx(c.Request().Context()).
 					With().
-					Str("trace-id", span.SpanContext().TraceID().String()).
+					Str(traceIDKey, traceID).
 					Logger().
 					WithContext(c.Request().Context())
 
 				c.SetRequest(c.Request().WithContext(loggingTraceIdCtx))
+				c.Set(traceIDKey, traceID)
 			}
 
 			return next(c)
