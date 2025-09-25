@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/labstack/echo/v4"
-	"go.opentelemetry.io/contrib/instrumentation/github.com/labstack/echo/otelecho"
 	"go.uber.org/fx"
 
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
@@ -50,8 +48,6 @@ func Module() fx.Option {
 
 		fx.Provide(NewMetricProvider),
 
-		fx.Invoke(func(e *echo.Echo, traceProvider *sdktrace.TracerProvider) {
-			e.Use(otelecho.Middleware("http-request", otelecho.WithTracerProvider(traceProvider)))
-		}),
+		fx.Provide(NewPropagator),
 	)
 }

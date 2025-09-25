@@ -1,6 +1,7 @@
 package mw
 
 import (
+	"net/http"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -10,19 +11,27 @@ import (
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 )
 
-func MetricsMiddleware(metricProvider *sdkmetric.MeterProvider) echo.MiddlewareFunc {
+func REDMetricsMiddleware(metricProvider *sdkmetric.MeterProvider) echo.MiddlewareFunc {
 	meter := metricProvider.Meter("http-server")
 
 	requestCounter, err := meter.Int64Counter(
-		"http_requests_total",
+		"http.server.requests",
 		metric.WithDescription("Total number of HTTP requests"),
 	)
 	if err != nil {
 		panic(err)
 	}
 
+	errorCounter, err := meter.Int64Counter(
+		"http.server.errors",
+		metric.WithDescription("Total number of 5xx HTTP responses"),
+	)
+	if err != nil {
+		panic(err)
+	}
+
 	requestDuration, err := meter.Float64Histogram(
-		"http_request_duration_seconds",
+		"http.server.duration",
 		metric.WithDescription("Duration of HTTP requests in seconds"),
 	)
 	if err != nil {
@@ -42,12 +51,18 @@ func MetricsMiddleware(metricProvider *sdkmetric.MeterProvider) echo.MiddlewareF
 			duration := time.Since(start).Seconds()
 
 			attrs := []attribute.KeyValue{
-				attribute.String("method", method),
-				attribute.String("route", route),
-				attribute.Int("status", status),
+				attribute.String("http.method", method),
+				attribute.String("http.route", route),
+				attribute.Int("http.status_code", status),
+				attribute.Float64("http.duration", duration),
 			}
 
 			requestCounter.Add(c.Request().Context(), 1, metric.WithAttributes(attrs...))
+
+			if status >= http.StatusInternalServerError {
+				errorCounter.Add(c.Request().Context(), 1, metric.WithAttributes(attrs...))
+			}
+
 			requestDuration.Record(c.Request().Context(), duration, metric.WithAttributes(attrs...))
 
 			return err

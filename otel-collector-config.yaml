@@ -17,6 +17,15 @@ processors:
         value: dev
         action: insert
 
+  spanmetrics:
+    metrics_exporter: prometheus
+    dimensions:
+      - service.name
+      - service.namespace
+      - span.name
+      - span.kind
+      - status.code
+
 exporters:
   otlp:
     endpoint: tempo:4317
@@ -32,7 +41,7 @@ service:
   pipelines:
     traces:
       receivers: [otlp]
-      processors: [resource, batch]
+      processors: [resource, batch, spanmetrics]
       exporters: [otlp]
 
     metrics:
