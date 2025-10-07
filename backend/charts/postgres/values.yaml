@@ -1,0 +1,9 @@
+postgres:
+
+  image:
+    tag: 16.3-alpine
+
+  auth:
+    username: sl
+    password: sl_password
+    database: sl
