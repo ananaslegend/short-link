@@ -1,0 +1,6 @@
+redis:
+  image:
+    tag: 7.2.5
+
+  auth:
+    password: "sl_password"
