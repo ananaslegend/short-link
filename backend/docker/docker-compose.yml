@@ -56,7 +56,7 @@ services:
         -database postgres://sl:sl_password@postgres:5432/sl?sslmode=disable
         up
     volumes:
-      - ./migrations/postgres:/migrations/postgres
+      - ../services/short-link/migrations/postgres:/migrations/postgres
 
   migrate-clickhouse:
     image: migrate/migrate:v4.18.3
@@ -65,7 +65,7 @@ services:
       clickhouse:
         condition: service_healthy
     volumes:
-      - ./migrations/clickhouse:/migrations:ro
+      - ../services/short-link/migrations/clickhouse:/migrations:ro
     command:
       [
         "-path",
@@ -153,7 +153,7 @@ services:
 
   shortlink:
     build:
-      context: . # Вказує, що Dockerfile знаходиться в поточній директорії
+      context: ../services/short-link # Вказує, що Dockerfile знаходиться в директорії short-link
       args:
         CMD_NAME_ARG: api # Значення за замовчуванням для CMD_NAME_ARG
     container_name: app
