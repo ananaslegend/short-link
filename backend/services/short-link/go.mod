@@ -2,6 +2,8 @@ module github.com/ananaslegend/short-link
 
 go 1.24.11
 
+require short-link/proto v0.0.0
+
 require (
 	github.com/ClickHouse/clickhouse-go/v2 v2.34.0
 	github.com/go-playground/validator/v10 v10.26.0
@@ -27,6 +29,7 @@ require (
 	go.opentelemetry.io/otel/trace v1.35.0
 	go.uber.org/automaxprocs v1.6.0
 	go.uber.org/fx v1.23.0
+	google.golang.org/protobuf v1.36.5
 )
 
 require (
@@ -84,6 +87,7 @@ require (
 	google.golang.org/genproto/googleapis/api v0.0.0-20250218202821-56aae31c358a // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250218202821-56aae31c358a // indirect
 	google.golang.org/grpc v1.71.0 // indirect
-	google.golang.org/protobuf v1.36.5 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
+
+replace short-link/proto => ../../proto
