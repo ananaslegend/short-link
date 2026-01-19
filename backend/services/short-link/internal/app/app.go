@@ -8,14 +8,15 @@ import (
 	"go.uber.org/fx"
 
 	aliasgenerator "github.com/ananaslegend/short-link/internal/alias_generator"
-	"github.com/ananaslegend/short-link/internal/app/api"
 	automaxprocswrapper "github.com/ananaslegend/short-link/internal/app/automaxprocs_wrapper"
 	clickhousewrapper "github.com/ananaslegend/short-link/internal/app/clickhouse_wrapper"
 	"github.com/ananaslegend/short-link/internal/app/config"
 	echowrapper "github.com/ananaslegend/short-link/internal/app/echo_wrapper"
+	natswrapper "github.com/ananaslegend/short-link/internal/app/nats_wrapper"
 	otelwrapper "github.com/ananaslegend/short-link/internal/app/otel_wrapper"
 	pgxwrapper "github.com/ananaslegend/short-link/internal/app/pgx_wrapper"
 	rediswrapper "github.com/ananaslegend/short-link/internal/app/redis_wrapper"
+	"github.com/ananaslegend/short-link/internal/app/transport"
 	zerologwrapper "github.com/ananaslegend/short-link/internal/app/zerolog_wrapper"
 	"github.com/ananaslegend/short-link/internal/link"
 	"github.com/ananaslegend/short-link/internal/statistic"
@@ -49,6 +50,8 @@ func New() *fx.App {
 
 		otelwrapper.Module(),
 
+		natswrapper.Module(),
+
 		pgxwrapper.Module(),
 		rediswrapper.Module(),
 		clickhousewrapper.Module(),
@@ -60,6 +63,6 @@ func New() *fx.App {
 		aliasgenerator.Module(),
 		link.Module(),
 
-		api.Module(),
+		transport.Module(),
 	)
 }

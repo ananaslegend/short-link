@@ -4,8 +4,7 @@ import (
 	"go.uber.org/fx"
 
 	linkService "github.com/ananaslegend/short-link/internal/link/service/statistic"
-	"github.com/ananaslegend/short-link/internal/statistic/repository/clickhouse"
-	repoTracer "github.com/ananaslegend/short-link/internal/statistic/repository/clickhouse/tracer"
+	natsrepo "github.com/ananaslegend/short-link/internal/statistic/repository/nats"
 	"github.com/ananaslegend/short-link/internal/statistic/service"
 	serviceTracer "github.com/ananaslegend/short-link/internal/statistic/service/tracer"
 )
@@ -15,8 +14,7 @@ func Module() fx.Option {
 		"internal.statistic",
 
 		fx.Provide(
-			fx.Annotate(clickhouse.NewRepository, fx.As(new(repoTracer.BaseService))),
-			fx.Annotate(repoTracer.NewOtelDecorator, fx.As(new(service.RedirectHandler))),
+			fx.Annotate(natsrepo.NewRepository, fx.As(new(service.RedirectHandler))),
 		),
 
 		fx.Provide(

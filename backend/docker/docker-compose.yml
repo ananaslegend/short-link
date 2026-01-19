@@ -151,31 +151,51 @@ services:
       - tempo_data:/tmp/tempo
     restart: unless-stopped
 
-  shortlink:
-    build:
-      context: ../services/short-link # Вказує, що Dockerfile знаходиться в директорії short-link
-      args:
-        CMD_NAME_ARG: api # Значення за замовчуванням для CMD_NAME_ARG
-    container_name: app
+  nats:
+    image: nats:2.10-alpine
+    container_name: nats
+    command: ["-c", "/etc/nats/nats-server.conf"]
     ports:
-      - "8080:8080"
-    depends_on:
-      redis:
-        condition: service_healthy
-      postgres:
-        condition: service_healthy
-      clickhouse:
-        condition: service_healthy
-      migrate-postgres: # Додано залежність від міграцій
-        condition: service_completed_successfully
-      migrate-clickhouse: # Додано залежність від міграцій
-        condition: service_completed_successfully
-      otel-collector: # Додано залежність від otel-collector
-        condition: service_started # Або service_healthy, якщо otel-collector має healthcheck
-    restart: unless-stopped
+      - "4222:4222" # client
+      - "8222:8222" # monitoring
+      - "6222:6222" # cluster (for future clustering)
+    volumes:
+      - ./nats-server.conf:/etc/nats/nats-server.conf:ro
+      - nats_data:/data
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8222/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+#
+#  shortlink:
+#    build:
+#      context: ../services/short-link # Вказує, що Dockerfile знаходиться в директорії short-link
+#      args:
+#        CMD_NAME_ARG: api # Значення за замовчуванням для CMD_NAME_ARG
+#    container_name: app
+#    ports:
+#      - "8080:8080"
+#    depends_on:
+#      redis:
+#        condition: service_healthy
+#      postgres:
+#        condition: service_healthy
+#      clickhouse:
+#        condition: service_healthy
+#      nats:
+#        condition: service_healthy
+#      migrate-postgres: # Додано залежність від міграцій
+#        condition: service_completed_successfully
+#      migrate-clickhouse: # Додано залежність від міграцій
+#        condition: service_completed_successfully
+#      otel-collector: # Додано залежність від otel-collector
+#        condition: service_started # Або service_healthy, якщо otel-collector має healthcheck
+#    restart: unless-stopped
 
 volumes:
   grafana-storage:
   alloy_data:
   loki_data:
   tempo_data:
+  nats_data:

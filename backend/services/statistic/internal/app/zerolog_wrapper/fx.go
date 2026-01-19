@@ -9,7 +9,7 @@ import (
 
 func Module() fx.Option {
 	return fx.Options(
-		fx.NopLogger,
+		//fx.NopLogger,
 
 		fx.Provide(SetupZerolog),
 

@@ -7,14 +7,16 @@ import (
 
 	"go.uber.org/fx"
 
-	"github.com/ananaslegend/statistic/internal/app/api"
 	automaxprocswrapper "github.com/ananaslegend/statistic/internal/app/automaxprocs_wrapper"
 	clickhousewrapper "github.com/ananaslegend/statistic/internal/app/clickhouse_wrapper"
 	"github.com/ananaslegend/statistic/internal/app/config"
 	echowrapper "github.com/ananaslegend/statistic/internal/app/echo_wrapper"
+	natswrapper "github.com/ananaslegend/statistic/internal/app/nats_wrapper"
 	otelwrapper "github.com/ananaslegend/statistic/internal/app/otel_wrapper"
+	"github.com/ananaslegend/statistic/internal/app/transport"
 	zerologwrapper "github.com/ananaslegend/statistic/internal/app/zerolog_wrapper"
 	"github.com/ananaslegend/statistic/internal/statistic"
+	"github.com/ananaslegend/statistic/internal/statistic/handler"
 )
 
 func New() *fx.App {
@@ -45,12 +47,15 @@ func New() *fx.App {
 
 		otelwrapper.Module(),
 
+		natswrapper.Module(),
+
 		clickhousewrapper.Module(),
 
 		echowrapper.Module(),
 
 		statistic.Module(),
+		handler.Module(),
 
-		api.Module(),
+		transport.Module(),
 	)
 }

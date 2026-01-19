@@ -22,6 +22,8 @@ type Config struct {
 	Otel        Otel
 
 	FlushStatisticDuration time.Duration
+
+	Nats Nats
 }
 
 type Env string
@@ -57,6 +59,15 @@ type Otel struct {
 	TraceFlushInterval  time.Duration
 	MeterGRCPAddr       string
 	MetricFlushInterval time.Duration
+}
+
+type Nats struct {
+	URL        string `validate:"required"`
+	Stream     string `validate:"required"`
+	Durable    string `validate:"required"`
+	DLQStream  string `validate:"required"`
+	AckWait    time.Duration
+	MaxDeliver int
 }
 
 func MustLoadConfig() Config {
@@ -96,6 +107,19 @@ func MustLoadConfig() Config {
 
 	cfg.Otel.MeterGRCPAddr = viper.GetString("OTEL_METRIC_GRCP_ADDR")
 	cfg.Otel.MetricFlushInterval = viper.GetDuration("OTEL_METRIC_FLUSH_INTERVAL")
+
+	cfg.Nats.URL = viper.GetString("NATS_URL")
+	cfg.Nats.Stream = viper.GetString("NATS_JETSTREAM_STREAM")
+	cfg.Nats.Durable = viper.GetString("NATS_DURABLE")
+	cfg.Nats.DLQStream = viper.GetString("NATS_DLQ_STREAM")
+	cfg.Nats.AckWait = viper.GetDuration("NATS_PUB_ACK_WAIT")
+	if maxDeliverStr := viper.GetString("NATS_MAX_DELIVER"); maxDeliverStr != "" {
+		md, err := strconv.Atoi(maxDeliverStr)
+		if err != nil {
+			panic(fmt.Sprintf("invalid NATS_MAX_DELIVER: %v", err))
+		}
+		cfg.Nats.MaxDeliver = md
+	}
 
 	if err = validator.New().Struct(cfg); err != nil {
 		panic(fmt.Sprintf("config validation failed: %v", err))

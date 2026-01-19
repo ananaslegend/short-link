@@ -131,3 +131,5 @@ Both services use golangci-lint with custom configuration in `.golangci.yml`:
 - **Shared Dependencies:** Both services use similar tech stack but with service-specific dependencies
 - **Port Allocation:** Short-Link (8080), Statistic (8081)
 - **Handler Implementation:** Statistic service handlers are not yet implemented (placeholder API module)
+- migrations and postgres data schema for short-link db stored in @backend/services/short-link/migrations/postgres/
+- migrations and clickhouse data schema for statistic db stored in @backend/services/short-link/migrations/clickhouse/

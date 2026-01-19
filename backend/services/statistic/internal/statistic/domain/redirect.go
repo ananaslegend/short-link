@@ -1,6 +1,10 @@
 package domain
 
+import "time"
+
 type RedirectEventStatistic struct {
-	Alias string
-	Link  string
+	LinkID     int64
+	Link       string
+	Alias      string
+	OccurredAt time.Time
 }
