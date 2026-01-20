@@ -12,7 +12,7 @@ import (
 )
 
 type BaseService interface {
-	GetLinkByAlias(ctx context.Context, alias string) (string, error)
+	GetLinkByAlias(ctx context.Context, dto domain.GetLinkDTO) (string, error)
 	InsertLink(ctx context.Context, dto domain.InsertLink) (domain.AliasedLink, error)
 }
 
@@ -29,11 +29,11 @@ func NewOtelDecorator(provider *sdktrace.TracerProvider, baseSrv BaseService) *O
 	}
 }
 
-func (o OtelDecorator) GetLinkByAlias(ctx context.Context, alias string) (string, error) {
+func (o OtelDecorator) GetLinkByAlias(ctx context.Context, dto domain.GetLinkDTO) (string, error) {
 	ctx, span := o.tracer.Start(ctx, "internal.link.service.Link.GetLinkByAlias")
 	defer span.End()
 
-	link, err := o.BaseService.GetLinkByAlias(ctx, alias)
+	link, err := o.BaseService.GetLinkByAlias(ctx, dto)
 	if err != nil {
 		span.SetStatus(codes.Error, err.Error())
 		span.RecordError(err)

@@ -3,7 +3,7 @@ package statistic
 import (
 	"go.uber.org/fx"
 
-	linkService "github.com/ananaslegend/short-link/internal/link/service/statistic"
+	linkService "github.com/ananaslegend/short-link/internal/link/service"
 	natsrepo "github.com/ananaslegend/short-link/internal/statistic/repository/nats"
 	"github.com/ananaslegend/short-link/internal/statistic/service"
 	serviceTracer "github.com/ananaslegend/short-link/internal/statistic/service/tracer"

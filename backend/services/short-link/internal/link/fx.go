@@ -11,8 +11,6 @@ import (
 	"github.com/ananaslegend/short-link/internal/link/repository/redis"
 	redisTracer "github.com/ananaslegend/short-link/internal/link/repository/redis/tracer"
 	"github.com/ananaslegend/short-link/internal/link/service"
-	"github.com/ananaslegend/short-link/internal/link/service/statistic"
-	statisticTracer "github.com/ananaslegend/short-link/internal/link/service/statistic/tracer"
 	serviceTracer "github.com/ananaslegend/short-link/internal/link/service/tracer"
 )
 
@@ -43,10 +41,7 @@ func Module() fx.Option {
 
 		fx.Provide(
 			fx.Annotate(service.New, fx.As(new(serviceTracer.BaseService))),
-			fx.Annotate(serviceTracer.NewOtelDecorator, fx.As(new(statistic.BaseService))),
-
-			fx.Annotate(statistic.NewRedirectDecorator, fx.As(new(statisticTracer.BaseService))),
-			fx.Annotate(statisticTracer.NewOtelDecorator, fx.As(new(http.LinkGetter))),
+			fx.Annotate(serviceTracer.NewOtelDecorator, fx.As(new(http.LinkGetter))),
 		),
 
 		fx.Provide(
