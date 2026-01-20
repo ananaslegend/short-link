@@ -22,6 +22,7 @@ NO_COLOR = "\033[0m"
 .PHONY: help
 help:
 	@echo $(BLUE)"Available commands:"$(NO_COLOR)
+	@echo "  proto               	- Generate protobuf code"
 	@echo "  lint                	- Run golangci-lint"
 	@echo "  build               	- Build the application"
 	@echo "  run                 	- Run the application locally"
@@ -34,6 +35,11 @@ help:
 	@echo "                          Example: make docker-run env=dev"
 	@echo "  migrate-up-clickhouse 	- Run ClickHouse migrations up"
 	@echo "  migrate-down-clickhouse	- Run ClickHouse migrations down"
+
+.PHONY: proto
+proto:
+	@echo $(GREEN)"[PROTO] generating protobuf code..."$(NO_COLOR)
+	@$(MAKE) -C ../../proto generate
 
 .PHONY: lint
 lint:

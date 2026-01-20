@@ -111,11 +111,13 @@ func MustLoadConfig() Config {
 	cfg.Nats.Stream = viper.GetString("NATS_JETSTREAM_STREAM")
 	cfg.Nats.Durable = viper.GetString("NATS_DURABLE")
 	cfg.Nats.PubAckWait = viper.GetDuration("NATS_PUB_ACK_WAIT")
+
 	if maxDeliverStr := viper.GetString("NATS_MAX_DELIVER"); maxDeliverStr != "" {
 		md, err := strconv.Atoi(maxDeliverStr)
 		if err != nil {
 			panic(fmt.Sprintf("invalid NATS_MAX_DELIVER: %v", err))
 		}
+
 		cfg.Nats.MaxDeliver = md
 	}
 

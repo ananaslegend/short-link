@@ -97,7 +97,7 @@ make docker-run env=dev      # Run with specific environment file
 ### Service Communication
 - **Short-Link Service:** Runs on port 8080, handles URL shortening and redirects
 - **Statistic Service:** Runs on port 8081, handles analytics and usage statistics
-- Services can communicate via HTTP or messaging (implementation pending)
+- Services can communicate via nats messaging 
 
 ### Configuration
 Each service has its own configuration:
@@ -133,3 +133,4 @@ Both services use golangci-lint with custom configuration in `.golangci.yml`:
 - **Handler Implementation:** Statistic service handlers are not yet implemented (placeholder API module)
 - migrations and postgres data schema for short-link db stored in @backend/services/short-link/migrations/postgres/
 - migrations and clickhouse data schema for statistic db stored in @backend/services/short-link/migrations/clickhouse/
+- If you create new files, add them to git (except build binaries)

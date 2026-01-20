@@ -1,0 +1,13 @@
+syntax = "proto3";
+package events.v1;
+option go_package = "short-link/proto/gen/events/v1;eventsv1";
+
+import "google/protobuf/timestamp.proto";
+
+message RedirectEventV1 {
+  string event_id = 1;
+  google.protobuf.Timestamp occurred_at = 2;
+  string alias = 3;
+  int64 link_id = 4;
+  string link = 5;
+}

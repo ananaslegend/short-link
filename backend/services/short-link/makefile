@@ -37,6 +37,7 @@ NO_COLOR = "\033[0m"
 .PHONY: help
 help:
 	@echo $(BLUE)"Available commands:"$(NO_COLOR)
+	@echo "  proto               	- Generate protobuf code"
 	@echo "  lint                	- Run golangci-lint"
 	@echo "  build               	- Build the application"
 	@echo "  run                 	- Run the application locally"
@@ -47,6 +48,11 @@ help:
 	@echo "  docker-run          	- Run application in Docker using default .env file"
 	@echo "  docker-run env={env}	- Run application in Docker using .env.{env} file"
 	@echo "                          Example: make docker-run env=dev"
+
+.PHONY: proto
+proto:
+	@echo $(GREEN)"[PROTO] generating protobuf code..."$(NO_COLOR)
+	@$(MAKE) -C ../../proto generate
 
 .PHONY: lint
 lint:
