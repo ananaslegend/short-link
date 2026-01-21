@@ -7,13 +7,14 @@ import (
 
 	"github.com/labstack/echo/v4"
 
+	"github.com/ananaslegend/short-link/internal/link/domain"
 	"github.com/ananaslegend/short-link/internal/link/service"
 )
 
 var ErrEmptyAlias = errors.New("empty alias")
 
 type LinkGetter interface {
-	GetLinkByAlias(c context.Context, alias string) (string, error)
+	GetLinkByAlias(c context.Context, dto domain.GetLinkDTO) (string, error)
 }
 
 // RedirectHandler godoc
@@ -34,7 +35,9 @@ func (h LinkHandler) RedirectHandler(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 
-	link, err := h.linkGetter.GetLinkByAlias(c.Request().Context(), alias)
+	dto := domain.GetLinkDTO{Alias: alias, SendStatistic: true}
+
+	link, err := h.linkGetter.GetLinkByAlias(c.Request().Context(), dto)
 	if err != nil {
 		return h.handleError(err)
 	}
